@@ -286,6 +286,25 @@ svg.map g.city.sel circle.dot{r:5;fill:var(--accent)}
  .howto{grid-template-columns:1fr}.howto>div+div{border-left:0;border-top:1px solid var(--border)}.pipe{grid-template-columns:1fr}.pipe>div::after{display:none}h1{font-size:1.6rem}main{padding:20px 16px 60px}.hdr-row,.stepper{padding-left:16px;padding-right:16px}.brand span{display:none}}
 @media(min-width:961px) and (max-width:1180px){.pcards{grid-template-columns:repeat(2,1fr)}.checks{grid-template-columns:repeat(3,1fr)}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* ---------- AI layer ---------- */
+.ai{position:relative;border:1px solid transparent;background:linear-gradient(var(--surface),var(--surface)) padding-box,linear-gradient(135deg,var(--accent),var(--info) 55%,#a855f7) border-box}
+.ai-tag{display:inline-flex;align-items:center;gap:5px;font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:999px;color:#fff;background:linear-gradient(135deg,var(--accent),var(--info));vertical-align:middle;margin-left:8px}
+.ai-btn{display:inline-flex;align-items:center;gap:7px;border:0;border-radius:10px;padding:9px 15px;font:inherit;font-weight:600;font-size:.88rem;color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--info));box-shadow:0 4px 14px -6px var(--info)}
+.ai-btn:hover{filter:brightness(1.08)}.ai-btn:disabled{opacity:.6;cursor:progress}.ai-btn.sm{padding:6px 11px;font-size:.8rem}
+.ai-btn.busy svg{animation:aispin 1s linear infinite}@keyframes aispin{to{transform:rotate(360deg)}}
+.ai-out{margin-top:14px;display:grid;gap:12px}.ai-out:empty{display:none}
+.ai-out .lbl{font-size:.74rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.ai-out p{margin:0}.ai-out ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.ai-note{font-size:.78rem;color:var(--muted)}.ai-note.ok{color:var(--good)}
+.ai-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.bubble{position:relative;padding:13px 15px;border-radius:4px 14px 14px 14px;background:var(--accent-soft);border:1px solid var(--accent-line);min-height:64px;white-space:pre-wrap}
+.bubble .copy{position:absolute;top:6px;right:6px;border:1px solid var(--border);background:var(--surface);color:var(--ink2);border-radius:7px;font-size:.72rem;padding:3px 8px;cursor:pointer}
+.bubble span{display:block;padding-right:52px}
+.caret::after{content:"\258D";color:var(--accent);animation:blink .8s steps(2) infinite}@keyframes blink{50%{opacity:0}}
+.ask{display:flex;gap:8px}.ask input{flex:1;min-width:0;border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:10px;padding:9px 12px;font:inherit}
+.ask input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.qa{padding:11px 13px;border-radius:10px;background:var(--soft);border:1px solid var(--border)}.qa b{display:block;margin-bottom:4px}
+.bcard .ai-out{margin-top:2px;font-size:.88rem}
 </style></head><body>
 
 <header class="hdr">
@@ -305,6 +324,7 @@ svg.map g.city.sel circle.dot{r:5;fill:var(--accent)}
   <div class="filters"><span class="small muted">Goal</span><div class="chips" id="obj"><button class="chip on" data-v="profit">Most profit</button><button class="chip" data-v="growth">More sales</button><button class="chip" data-v="clear">Clear old stock</button><button class="chip" data-v="retain">Win back customers</button></div>
     <select class="pick" id="fcity"><option value="">All cities</option></select><select class="pick" id="fcat"><option value="">All categories</option></select></div>
   <div class="answer"><span class="ic" data-ic="spark"></span><div><div class="lbl">In one line</div><p id="m-insight"><span class="skel" style="display:block;width:70%"></span></p></div></div>
+  <div class="card ai" id="ov" style="margin-top:14px"><div class="row" style="justify-content:space-between;gap:12px;flex-wrap:wrap"><div><h2 style="margin:0">Morning briefing<span class="ai-tag">AI</span></h2><p class="sub" style="margin:2px 0 0">The plan for this season in the words of a head of promotions.</p></div><button class="ai-btn" id="ov-btn" data-label="Brief me"></button></div><div class="ai-out" id="ov-out"></div></div>
   <div class="pipe" id="pipe"></div>
   <div class="section"><div class="row" style="justify-content:space-between;align-items:flex-end"><div><h2>Our top picks</h2><p class="sub">Click a card to see why it was picked</p></div><button class="link" id="more-picks"></button></div>
     <div class="tools"><input class="search" id="psearch" placeholder="Search product, city or customer group…" aria-label="Search promotions"><span class="small muted">Sort by</span><div class="seg2" id="psort"><button class="on" data-s="rank">Best match</button><button data-s="profit">Profit</button><button data-s="conf">Confidence</button><button data-s="risk">Lowest risk</button></div></div>
@@ -355,6 +375,10 @@ svg.map g.city.sel circle.dot{r:5;fill:var(--accent)}
     <div class="grid" style="gap:20px">
       <div class="card"><h2>Promotion setup</h2><p class="sub">Every change is checked instantly.</p><div class="fields" id="fields"><div class="skel"></div></div><div class="summary" id="summary"></div></div>
       <div class="card why"><h2>Why this decision</h2><div id="why"></div></div>
+      <div class="card ai" id="brief"><div class="row" style="justify-content:space-between;gap:12px;flex-wrap:wrap"><div><h2 style="margin:0">AI campaign studio<span class="ai-tag">AI</span></h2><p class="sub" style="margin:2px 0 0">Ready-to-send messages for this exact promotion, plus answers to your questions.</p></div><button class="ai-btn" id="brief-btn" data-label="Write the campaign"></button></div>
+        <div class="ai-out" id="brief-out"></div>
+        <div style="margin-top:16px"><div class="ai-out" style="margin:0 0 10px" id="ask-log"></div><div class="chips" id="ask-chips" style="margin-bottom:8px"><button class="chip">Why this decision?</button><button class="chip">What is the biggest risk?</button><button class="chip">How do I make it safer?</button></div>
+        <form class="ask" id="ask-form"><input id="ask-q" maxlength="300" placeholder="Ask anything about this promotion…" aria-label="Ask about this promotion"><button class="ai-btn" data-label="Ask"></button></form></div></div>
       <div class="card"><h2>Will stock last?</h2><p class="sub" id="burn-i"></p><div class="chart"><canvas id="c-burn"></canvas></div></div>
     </div>
     <aside class="card panel" id="panel"><div style="padding:22px"><div class="skel"></div></div></aside>
@@ -547,6 +571,40 @@ function renderForge(r){const I=r.insights||{},[vl,vd,vc]=V[vk(r.verdict)];
  $('#twins').innerHTML=r.twins.length?r.twins.map(t=>`<div class="lrow"><div class="grow"><div>${esc(t.name)}</div><div class="small muted">Expected ${t.pred_roi}× · actual ${t.actual_roi}×</div></div><span class="pill ${t.actual_roi>=t.pred_roi?'p-GO':'p-CONDITIONAL'}">${t.actual_roi>=t.pred_roi?'Beat forecast':'Below forecast'}</span></div>`).join(''):'<p class="muted small">No similar past promotions found.</p>';}
 let PIN=null;const scen=()=>({s:CUR.segment,k:CUR.sku,c:CUR.city,o:CUR.offer_idx,ch:CUR.channel,cap:CUR.cap,w:CUR.window});
 $('#panel').addEventListener('click',e=>{const p=e.target.closest('[data-pin]');if(!p)return;if(p.dataset.pin==='set'){const o=$('#s-offer'),g=$('#s-city');PIN={key:JSON.stringify(scen()),r:CUR.last,label:`${o.options[o.selectedIndex].text}, ${g.options[g.selectedIndex].text}`};toast('Pinned. Now change the discount, city or group to compare')}else PIN=null;renderForge(CUR.last)});
+/* ---------- AI layer: every call is on demand, grounded in the engine's facts, with a template fallback ---------- */
+$$('.ai-btn[data-label]').forEach(b=>b.innerHTML=icon('spark',16)+esc(b.dataset.label));
+const aiErr=e=>esc(e?.detail?.msg||(typeof e?.detail==='string'?e.detail:'')||'AI writing is not available right now.');
+const aiBusy=(b,on)=>{b.disabled=on;b.classList.toggle('busy',on)};
+const aiNote=d=>`<div class="ai-note ${d.source==='ai'?'ok':''}">${d.source==='ai'?'✓ ':''}${esc(d.note||'')}</div>`;
+const typeInto=(el,text)=>{clearInterval(el._t);text=String(text??'');if(RM){el.textContent=text;return}let i=0;el.textContent='';el.classList.add('caret');el._t=setInterval(()=>{i+=3;el.textContent=text.slice(0,i);if(i>=text.length){clearInterval(el._t);el.classList.remove('caret')}},14)};
+const aiList=a=>`<ul>${(a||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
+const curBody=()=>({...CUR,last:undefined});
+let BRIEF=null;
+function showMsg(k){$$('#msg-tabs .chip').forEach(c=>c.classList.toggle('on',c.dataset.k===k));typeInto($('#msg-text'),BRIEF[k]||'')}
+$('#brief-btn').onclick=async()=>{const b=$('#brief-btn'),o=$('#brief-out');if(!CUR)return;aiBusy(b,true);
+ try{const d=BRIEF=await api('/api/brief',curBody());
+  o.innerHTML=`<div><div class="lbl">For the manager</div><p id="brief-sum"></p></div>
+  <div><div class="lbl">Customer message</div><div class="ai-tabs" id="msg-tabs">${[['whatsapp','WhatsApp'],['sms','SMS'],['email_subject','Email subject'],['hindi','हिंदी']].map(([k,l])=>`<button class="chip" data-k="${k}">${l}</button>`).join('')}</div>
+  <div class="bubble" style="margin-top:8px"><button class="copy" id="msg-copy">Copy</button><span id="msg-text"></span></div></div>
+  <div><div class="lbl">Talking points for store staff</div>${aiList(d.talking_points)}</div>${aiNote(d)}`;
+  typeInto($('#brief-sum'),d.summary);showMsg('whatsapp')}
+ catch(e){o.innerHTML=`<div class="ai-note">${aiErr(e)}</div>`}
+ aiBusy(b,false)};
+$('#brief-out').onclick=e=>{const t=e.target.closest('[data-k]');if(t)return showMsg(t.dataset.k);
+ if(e.target.id==='msg-copy'){const ok=()=>toast('Message copied'),no=()=>toast('Copy is not available here');navigator.clipboard?navigator.clipboard.writeText($('#msg-text').textContent).then(ok,no):no()}};
+async function askAI(q){q=q.trim();if(!q||!CUR)return;const b=$('#ask-form .ai-btn'),el=document.createElement('div');el.className='qa';el.innerHTML=`<b>${esc(q)}</b><span></span>`;$('#ask-log').append(el);aiBusy(b,true);
+ try{const d=await api('/api/ai/ask',{...curBody(),question:q});typeInto(el.lastChild,d.answer);el.insertAdjacentHTML('beforeend',aiNote(d))}catch(e){el.lastChild.innerHTML=aiErr(e)}
+ aiBusy(b,false)}
+$('#ask-form').onsubmit=e=>{e.preventDefault();const i=$('#ask-q');askAI(i.value);i.value=''};
+$('#ask-chips').onclick=e=>{const c=e.target.closest('.chip');c&&askAI(c.textContent)};
+$('#ov-btn').onclick=async()=>{const b=$('#ov-btn'),o=$('#ov-out'),q=new URLSearchParams({objective:OBJ,window:$('#win').value});$('#fcity').value&&q.set('city',$('#fcity').value);$('#fcat').value&&q.set('category',$('#fcat').value);aiBusy(b,true);
+ try{const d=await api('/api/ai/overview?'+q);o.innerHTML=`<p id="ov-h" style="font-size:1.12rem;font-weight:600"></p><p id="ov-b"></p><div><div class="lbl">Do next</div>${aiList(d.actions)}</div>${aiNote(d)}`;typeInto($('#ov-h'),d.headline);typeInto($('#ov-b'),d.briefing)}
+ catch(e){o.innerHTML=`<div class="ai-note">${aiErr(e)}</div>`}
+ aiBusy(b,false)};
+$('#court').addEventListener('click',async e=>{const b=e.target.closest('[data-aifix]');if(!b)return;const o=b.closest('.bcard').querySelector('[data-fixout]');aiBusy(b,true);
+ try{const d=await api('/api/ai/fix',{...JSON.parse(b.dataset.aifix),window:$('#win').value});o.innerHTML=`<p></p><div><div class="lbl">Rescue plan</div>${aiList(d.plan)}</div><p class="muted">${esc(d.verdict_after)}</p>${aiNote(d)}`;typeInto(o.firstChild,d.explain)}
+ catch(err){o.innerHTML=`<div class="ai-note">${aiErr(err)}</div>`}
+ aiBusy(b,false)});
 $('#panel').onclick=async e=>{const b=e.target.closest('#submit');if(!b||b.disabled)return;b.disabled=true;try{const c=await api('/api/campaigns',{...CUR,last:undefined});toast(`Promotion ${c.id} sent for sign-off`);go('approve')}catch(e){$('#send-msg').textContent=errMsg(e)}finally{b.disabled=vk(CUR?.last?.verdict)==='BLOCK'}};
 
 /* 5 blocked */
@@ -554,7 +612,7 @@ function renderCourt(bl){$('#court').innerHTML=bl.length?bl.map(r=>`<div class="
  <div class="meta"><span>${icon('users',15)}${esc(r.segment)}</span><span>${icon('pin',15)}${esc(r.city_name)}</span></div>
  ${(r.blocks||[]).map(b=>`<div class="box bad">${icon('x',16)}<span>${esc(b)}</span></div>`).join('')}
  ${(r.what_would_change||[]).slice(0,2).map(f=>`<div class="box fix">${icon('wrench',16)}<span>${esc(f)}</span></div>`).join('')}
- <button class="btn ghost sm" style="align-self:flex-start;margin-top:auto" data-rework="${esc(JSON.stringify({segment:r.segment,sku:r.sku,city:r.city,offer_idx:r.offer_idx,channel:r.channel}))}">Try the fix ${icon('arrow',15)}</button></div>`).join(''):'<div class="card empty" style="grid-column:1/-1"><b>Nothing blocked</b>Every idea for this filter passed the safety rules.</div>'}
+ <div class="ai-out" data-fixout></div><div class="row" style="gap:8px;margin-top:auto;flex-wrap:wrap"><button class="ai-btn sm" data-aifix="${esc(JSON.stringify({segment:r.segment,sku:r.sku,city:r.city,offer_idx:r.offer_idx,channel:r.channel}))}">${icon('spark',14)}Explain with AI</button><button class="btn ghost sm" data-rework="${esc(JSON.stringify({segment:r.segment,sku:r.sku,city:r.city,offer_idx:r.offer_idx,channel:r.channel}))}">Try the fix ${icon('arrow',15)}</button></div></div>`).join(''):'<div class="card empty" style="grid-column:1/-1"><b>Nothing blocked</b>Every idea for this filter passed the safety rules.</div>'}
 new MutationObserver(()=>stagger($('#court'))).observe($('#court'),{childList:true});
 $('#court').onclick=e=>{const b=e.target.closest('[data-rework]');b&&openForge(JSON.parse(b.dataset.rework))};
 

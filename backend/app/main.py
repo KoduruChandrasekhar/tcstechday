@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from . import ai
 from . import engine as E
 
 app = FastAPI(title="Prometheus PromoForge")
@@ -140,6 +141,30 @@ def simulate(s: Sim):
     avg_a = sum(t["actual_roi"] for t in r["twins"]) / max(len(r["twins"]), 1)
     r["insights"]["twins"] = f"The 3 most similar past promotions returned {avg_a:.2f}× on average; we expect {r['roi']}× here."
     return r
+
+
+@app.post("/api/brief")
+def ai_brief(s: Sim):
+    return ai.brief(_eval(s))
+
+
+class Ask(Sim):
+    question: str
+
+
+@app.post("/api/ai/fix")
+def ai_fix(s: Sim):
+    return ai.fix(_eval(s))
+
+
+@app.post("/api/ai/ask")
+def ai_ask(s: Ask):
+    return ai.ask(_eval(s), s.question)
+
+
+@app.get("/api/ai/overview")
+def ai_overview(objective: str = "profit", window: str = E.DEFAULT_WINDOW, city: str | None = None, category: str | None = None):
+    return ai.overview(recommendations(objective, window, city, category), E.WINDOWS[window][0], objective)
 
 
 @app.get("/api/mismatch")
