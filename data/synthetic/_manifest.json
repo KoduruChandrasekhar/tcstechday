@@ -1,0 +1,172 @@
+{
+  "seed": 42,
+  "tables": {
+    "regions": {
+      "rows": 4,
+      "sha256": "099bf20f8a1241d64488f7935bc087e05557f14fb1e4844c8c09c4d9e1703769"
+    },
+    "cities": {
+      "rows": 12,
+      "sha256": "a95ed81be87113702db2ab7d9bc6b601e9a14a64c1039eb967845e9fdbb306a4"
+    },
+    "stores": {
+      "rows": 36,
+      "sha256": "1f889c20b74b72911e6400b59aa112f2384ce9e6360ce2bc9c881d9a130c8095"
+    },
+    "warehouses": {
+      "rows": 4,
+      "sha256": "f91ae638e2d779c2046304bd5f1293d7c2427744c1d4596d49c392f5e2e8f031"
+    },
+    "store_capacity": {
+      "rows": 36,
+      "sha256": "13e7e1337cd3ef6af35a03a65f274dbb7a6cc3e17fbe6c5920c5b5e4ee877c7f"
+    },
+    "product_relationships": {
+      "rows": 2424,
+      "sha256": "1581fa74c463783a80ba250ed0139971aab9c6b25692a3e5db7bca8d8525b5b2"
+    },
+    "events": {
+      "rows": 55,
+      "sha256": "52db43887121dfbd98e2c734148a78f87c886a02bdde179277434b95557ab033"
+    },
+    "channel_costs": {
+      "rows": 6,
+      "sha256": "9ebce8e779bbd9c7c5dae2b5affd0669c12b86c37a22e7089a7ac6a5d49e72bf"
+    },
+    "orders": {
+      "rows": 57629,
+      "sha256": "e99fd29afd87004ca30f2ffe8ae5d45db8ab141945026c9a60a7cf51a2f81e5f"
+    },
+    "order_lines": {
+      "rows": 79530,
+      "sha256": "e88c9ffa5125360906ba29715c61e2962a35d2e631676cfb86b4451af4a18b1e"
+    },
+    "returns": {
+      "rows": 2226,
+      "sha256": "77b6ce7d8d682efdf0329292743ca6363bfa94db1252fddcf40d496b12a64938"
+    },
+    "reviews": {
+      "rows": 4982,
+      "sha256": "dbcbcc0bfdec988d57e02f2e8feed6052e805bc5eb5283d13d5b648c82ec20ed"
+    },
+    "products": {
+      "rows": 332,
+      "sha256": "b093804ba55031467f6e76b956694e779fbf86f3aca1f7eb3d2cc60697d05df3"
+    },
+    "customers": {
+      "rows": 8000,
+      "sha256": "bf4c5a193ff030084681f9da5293382adaa642bbfde6808cabe4e26569661ffc"
+    },
+    "web_daily": {
+      "rows": 356478,
+      "sha256": "dc5ece5c1da0081be2d548aa97d6fc1bb89506df3624a7ad94a217efb0528730"
+    },
+    "city_search_index": {
+      "rows": 113880,
+      "sha256": "4d6065b061cf1b10cd61ad8fe69b8a45279b44b5186aadaf4503f2da852462c4"
+    },
+    "campaigns_hist": {
+      "rows": 140,
+      "sha256": "a4f9ccf242f7edc9f567f3c9c161f28015703b9d7a8c36708ccc06e77f8dbad5"
+    },
+    "exposures": {
+      "rows": 180492,
+      "sha256": "42af9220676892e53d7c3aa8f38f6ef083657b28321393e678d6ef74e4d3ccaa"
+    },
+    "campaign_outcomes": {
+      "rows": 3782,
+      "sha256": "8b428e127690889ea4ae5835f8e0e90291020fc6d28753dd6d9543e283047a85"
+    },
+    "inventory_weekly": {
+      "rows": 360994,
+      "sha256": "f2bab197547035cce64cae9d14185f033f4ed3d38bb2da57edf7b91d7bf7bb5e"
+    },
+    "inventory_snapshot": {
+      "rows": 11520,
+      "sha256": "400bc967a6776d582eacf9503ba2f35899fff333c775a9e5c2ff5c290efe8335"
+    },
+    "inbound_po": {
+      "rows": 22346,
+      "sha256": "9d13d66c6c06174c5d213541a7517993bba7b686876015996c6d286599679cd4"
+    },
+    "stock_transfers": {
+      "rows": 12,
+      "sha256": "8fe5c658c8a162d26d924bed3af55b8d7fb5c04889b3e4bd2348320124f820f4"
+    },
+    "install_bookings": {
+      "rows": 28440,
+      "sha256": "03b5e611c9ceb28b3841697cf8579cbbed882c238503a99c9b931c3305a06396"
+    },
+    "markdown_calendar": {
+      "rows": 7175,
+      "sha256": "338d36c4b01e47e8258d96239e76b5d9708df2201e23e2c5c5648cc486f0b66b"
+    },
+    "regional_demand": {
+      "rows": 14319,
+      "sha256": "922fdf88e877f7fb9a7cb96bfd2bc88551b5712f631ebed1866e55b9265bd0f6"
+    },
+    "customer_behavior_summary": {
+      "rows": 8000,
+      "sha256": "1aec8ccf5e48c3554e55e7b6cb6d9e3054ab651e8e5033ec2d72a1837309a4bf"
+    }
+  },
+  "truth": {
+    "uplift_truth": {
+      "rows": 180492,
+      "sha256": "6448e7e9e861d350a20a37e7a7b7f26cd6df206cbeda9b15923f6c569db9765f"
+    },
+    "campaign_design_truth": {
+      "rows": 140,
+      "sha256": "cb302cbb9a079f87e67960cdd4327c577cfd9f3e81c42e02ec877c963db70316"
+    },
+    "customers_truth": {
+      "rows": 8000,
+      "sha256": "aa6b7083814de6ff816a846780c3d0aac13b3db2c8de0584f181f677e3898cf2"
+    },
+    "product_truth": {
+      "rows": 332,
+      "sha256": "46f59f6ee8b871148264acd93e82bed5338b83c7e2974aeecfa1d682b41562ea"
+    },
+    "elasticity_truth": {
+      "rows": 12,
+      "sha256": "9f886cc7b4b2ae2ac4dccf5bded82b783b77427e4a5b7cc4d38ad3e9cac34c85"
+    },
+    "festival_truth": {
+      "rows": 5712,
+      "sha256": "053ebf3e7df8326b67ad5063d568d6d9f7fbb79d34be1e23130780311a15180a"
+    },
+    "demand_truth": {
+      "rows": 105120,
+      "sha256": "005b68c0cdbdb277689a836f1b1dec16a87a0200a4c6d641f85bb38e2e32c13c"
+    },
+    "cannibalisation_truth": {
+      "rows": 103,
+      "sha256": "d75fb596342d645b3afb3d581c1384350b2bce2cc7fc2e91ec52ce6b86302e08"
+    },
+    "lost_demand_events": {
+      "rows": 1990,
+      "sha256": "1d91e89df9918d98b0c54ed1807cb78ce4b019cb1c2eef0fcc6a397cb2761ce8"
+    },
+    "lifecycle_events": {
+      "rows": 11898,
+      "sha256": "30c5d1b9b10e7fd208f98a22a8805d803456d974a55e8e14414ec69d086b514e"
+    },
+    "attach_truth": {
+      "rows": 13,
+      "sha256": "717d49f86bed913227c5594adc0df5b61784d963496fd65e8d0cfaf0012b8119"
+    },
+    "attach_city_multipliers": {
+      "rows": 12,
+      "sha256": "0568b3e3dcbb6224d16b2179e44ae97d1e818bc497d46f134c74f6b0a51d776b"
+    },
+    "story_truth": {
+      "rows": 10,
+      "sha256": "07caa906a8c7b0b787ed781141b9290d4b08e26f9be9535883b69e32457348c3"
+    },
+    "simulation_params": {
+      "rows": 10,
+      "sha256": "94abb40057e04c2b8532ba2ee2f9541b98d0cbcf51a103652cc84bb13bfb5bcf"
+    }
+  },
+  "elapsed_s": 83.1
+}

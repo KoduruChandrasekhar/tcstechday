@@ -1,0 +1,523 @@
+{
+  "online_retail_ii": {
+    "available": true,
+    "file": "online_retail_II.xlsx",
+    "sheets": [
+      "Year 2009-2010",
+      "Year 2010-2011"
+    ],
+    "rows": 1067371,
+    "duplicate_rows": 34335,
+    "columns": {
+      "Invoice": "object",
+      "StockCode": "object",
+      "Description": "object",
+      "Quantity": "float64",
+      "InvoiceDate": "datetime64[ns]",
+      "Price": "float64",
+      "Customer ID": "float64",
+      "Country": "object"
+    },
+    "date_range": [
+      "2009-12-01",
+      "2011-12-09"
+    ],
+    "n_invoices": 40077,
+    "n_customers": 5878,
+    "n_products": 4917,
+    "n_countries": 43,
+    "home_country_invoice_share": 0.9116,
+    "guest_invoice_share": 0.0776,
+    "cancel_line_share": 0.0183,
+    "cancel_value_ratio": 0.0728,
+    "repeat_customer_share": 0.7239,
+    "invoices_per_customer": {
+      "p10": 1.0,
+      "p25": 1.0,
+      "p50": 3.0,
+      "p75": 7.0,
+      "p90": 13.0,
+      "p99": 46.0
+    },
+    "annual_invoice_rate": {
+      "p10": 0.4946,
+      "p25": 0.4946,
+      "p50": 1.4837,
+      "p75": 3.4621,
+      "p90": 6.4295,
+      "p99": 22.7507
+    },
+    "annual_invoice_rate_gamma_k": 0.234,
+    "inter_purchase_gap_days": {
+      "p10": 5.0,
+      "p25": 13.0,
+      "p50": 32.0,
+      "p75": 71.0,
+      "p90": 148.0,
+      "p99": 377.0
+    },
+    "lines_per_invoice": {
+      "p10": 2.0,
+      "p25": 6.0,
+      "p50": 16.0,
+      "p75": 29.0,
+      "p90": 53.0,
+      "p99": 202.0
+    },
+    "quantity_per_line": {
+      "p10": 1.0,
+      "p25": 1.0,
+      "p50": 3.0,
+      "p75": 10.0,
+      "p90": 24.0,
+      "p99": 100.0
+    },
+    "unit_price": {
+      "p10": 0.65,
+      "p25": 1.25,
+      "p50": 2.1,
+      "p75": 4.13,
+      "p90": 7.95,
+      "p99": 18.0
+    },
+    "log_price_sigma": 0.942,
+    "invoice_value": {
+      "p10": 61.2,
+      "p25": 151.97,
+      "p50": 304.31,
+      "p75": 504.9,
+      "p90": 949.054,
+      "p99": 4542.058
+    },
+    "top20pct_sku_revenue_share": 0.7954,
+    "sku_rank_revenue_slope_top500": -0.6317,
+    "month_profile": [
+      0.656,
+      0.689,
+      0.9387,
+      0.8108,
+      0.9525,
+      0.9516,
+      0.8995,
+      0.8342,
+      1.1007,
+      1.2998,
+      1.6516,
+      1.2157
+    ],
+    "dow_profile_mon_to_sun": [
+      1.1093,
+      1.2735,
+      1.255,
+      1.4476,
+      1.0649,
+      0.0052,
+      0.8445
+    ],
+    "hour_profile": {
+      "6": 0.0004,
+      "7": 0.0288,
+      "8": 0.3735,
+      "9": 1.0308,
+      "10": 1.7254,
+      "11": 1.8351,
+      "12": 2.4051,
+      "13": 2.1315,
+      "14": 1.898,
+      "15": 1.709,
+      "16": 1.0173,
+      "17": 0.5266,
+      "18": 0.1744,
+      "19": 0.1243,
+      "20": 0.0198
+    }
+  },
+  "instacart": {
+    "available": true,
+    "files": {
+      "orders.csv": null,
+      "order_products__prior.csv": null,
+      "order_products__train.csv": null,
+      "products.csv": null,
+      "departments.csv": null,
+      "aisles.csv": null
+    },
+    "rows": {
+      "orders": 3421083,
+      "order_products__prior": 32434489,
+      "order_products__train": 1384617,
+      "products": 49688,
+      "departments": 21
+    },
+    "columns": {
+      "orders": {
+        "order_id": "Int64",
+        "user_id": "Int64",
+        "eval_set": "String",
+        "order_number": "Int64",
+        "order_dow": "Int64",
+        "order_hour_of_day": "Int64",
+        "days_since_prior_order": "Float64"
+      },
+      "products": {
+        "product_id": "Int64",
+        "product_name": "String",
+        "aisle_id": "Int64",
+        "department_id": "Int64"
+      }
+    },
+    "n_users": 206209,
+    "n_orders": 3421083,
+    "orders_per_user": {
+      "p10": 4.0,
+      "p25": 6.0,
+      "p50": 10.0,
+      "p75": 20.0,
+      "p90": 38.0,
+      "p99": 89.0
+    },
+    "days_since_prior": {
+      "p10": 2.0,
+      "p25": 4.0,
+      "p50": 7.0,
+      "p75": 15.0,
+      "p90": 30.0,
+      "p99": 30.0
+    },
+    "days_since_prior_capped30_share": 0.1149,
+    "basket_size": {
+      "p10": 2.0,
+      "p25": 5.0,
+      "p50": 8.0,
+      "p75": 14.0,
+      "p90": 20.0,
+      "p99": 35.0
+    },
+    "basket_size_mean": 10.089,
+    "reorder_rate": 0.5897,
+    "reorder_rate_by_cart_position": [
+      0.6775,
+      0.6763,
+      0.658,
+      0.637,
+      0.6174,
+      0.6004,
+      0.5857,
+      0.5732,
+      0.5615,
+      0.551,
+      0.541,
+      0.5326,
+      0.5248,
+      0.5164,
+      0.5092,
+      0.5029,
+      0.496,
+      0.4908,
+      0.4849,
+      0.4557
+    ],
+    "department_pair_lift": {
+      "p10": 0.9092,
+      "p25": 1.1465,
+      "p50": 1.2751,
+      "p75": 1.4559,
+      "p90": 1.831,
+      "p99": 4.9288
+    },
+    "department_pair_top": [
+      {
+        "a": "meat seafood",
+        "b": "dairy eggs",
+        "lift": 35.621,
+        "confidence": 0.801
+      },
+      {
+        "a": "dry goods pasta",
+        "b": "dairy eggs",
+        "lift": 5.722,
+        "confidence": 0.829
+      },
+      {
+        "a": "bakery",
+        "b": "beverages",
+        "lift": 4.955,
+        "confidence": 0.512
+      },
+      {
+        "a": "frozen",
+        "b": "dairy eggs",
+        "lift": 4.518,
+        "confidence": 0.773
+      },
+      {
+        "a": "frozen",
+        "b": "pantry",
+        "lift": 4.409,
+        "confidence": 0.427
+      },
+      {
+        "a": "produce",
+        "b": "breakfast",
+        "lift": 3.683,
+        "confidence": 0.178
+      },
+      {
+        "a": "other",
+        "b": "alcohol",
+        "lift": 3.501,
+        "confidence": 0.09
+      },
+      {
+        "a": "alcohol",
+        "b": "pets",
+        "lift": 2.641,
+        "confidence": 0.049
+      }
+    ],
+    "top1pct_product_line_share": 0.4277,
+    "dow_profile_0_to_6": [
+      1.2295,
+      1.2021,
+      0.9561,
+      0.8941,
+      0.8723,
+      0.9277,
+      0.9182
+    ],
+    "hour_profile": [
+      0.1597,
+      0.087,
+      0.0529,
+      0.0384,
+      0.0388,
+      0.0671,
+      0.2142,
+      0.6445,
+      1.2501,
+      1.8086,
+      2.0233,
+      1.9975,
+      1.9141,
+      1.9503,
+      1.9856,
+      1.9898,
+      1.912,
+      1.6051,
+      1.2832,
+      0.9861,
+      0.7316,
+      0.548,
+      0.4312,
+      0.2809
+    ]
+  },
+  "olist": {
+    "available": true,
+    "rows": {
+      "orders": 99441,
+      "customers": 99441,
+      "order_items": 112650,
+      "payments": 103886,
+      "reviews": 99224,
+      "products": 32951,
+      "sellers": 3095,
+      "geolocation": 1000163
+    },
+    "columns": {
+      "orders": {
+        "order_id": "object",
+        "customer_id": "object",
+        "order_status": "object",
+        "order_purchase_timestamp": "datetime64[ns]",
+        "order_approved_at": "datetime64[ns]",
+        "order_delivered_carrier_date": "datetime64[ns]",
+        "order_delivered_customer_date": "datetime64[ns]",
+        "order_estimated_delivery_date": "datetime64[ns]"
+      },
+      "order_items": {
+        "order_id": "object",
+        "order_item_id": "int64",
+        "product_id": "object",
+        "seller_id": "object",
+        "shipping_limit_date": "object",
+        "price": "float64",
+        "freight_value": "float64"
+      },
+      "reviews": {
+        "review_id": "object",
+        "order_id": "object",
+        "review_score": "int64",
+        "review_creation_date": "datetime64[ns]"
+      }
+    },
+    "date_range": [
+      "2016-09-04",
+      "2018-10-17"
+    ],
+    "order_status_share": {
+      "delivered": 0.9702,
+      "shipped": 0.0111,
+      "canceled": 0.0063,
+      "unavailable": 0.0061,
+      "invoiced": 0.0032,
+      "processing": 0.003,
+      "created": 0.0001,
+      "approved": 0.0
+    },
+    "unique_customers": 96096,
+    "repeat_customer_share": 0.0312,
+    "items_per_order": {
+      "p10": 1.0,
+      "p25": 1.0,
+      "p50": 1.0,
+      "p75": 1.0,
+      "p90": 1.0,
+      "p99": 3.0
+    },
+    "multi_item_order_share": 0.0994,
+    "item_price": {
+      "p10": 23.8,
+      "p25": 39.9,
+      "p50": 74.99,
+      "p75": 134.9,
+      "p90": 229.8,
+      "p99": 890.0
+    },
+    "electronics_item_price": {
+      "p10": 17.89,
+      "p25": 25.0,
+      "p50": 52.0,
+      "p75": 129.9,
+      "p90": 235.9,
+      "p99": 1221.4722
+    },
+    "electronics_line_share": 0.1715,
+    "freight_to_price_ratio": {
+      "p10": 0.0787,
+      "p25": 0.134,
+      "p50": 0.2314,
+      "p75": 0.393,
+      "p90": 0.6429,
+      "p99": 1.5495
+    },
+    "delivery_days": {
+      "p10": 4.1598,
+      "p25": 6.7664,
+      "p50": 10.2178,
+      "p75": 15.7203,
+      "p90": 23.0976,
+      "p99": 46.0499
+    },
+    "late_share": 0.0677,
+    "delivery_days_same_state_median": 6.55,
+    "delivery_days_cross_state_median": 12.79,
+    "review_score_share": {
+      "1": 0.1151,
+      "2": 0.0318,
+      "3": 0.0824,
+      "4": 0.1929,
+      "5": 0.5778
+    },
+    "review_score_mean": 4.086,
+    "review_score_on_time": 4.29,
+    "review_score_late": 2.271,
+    "review_score_by_late_band": {
+      "on_time": 4.29,
+      "1-3": 3.29,
+      "4-7": 2.104,
+      "8-14": 1.677,
+      "15+": 1.725
+    },
+    "review_comment_share": 0.413,
+    "payment_type_share": {
+      "credit_card": 0.7697,
+      "boleto": 0.1991,
+      "voucher": 0.0163,
+      "debit_card": 0.0149,
+      "not_defined": 0.0
+    },
+    "installments_gt1_share_by_price_quartile": {
+      "q1": 0.3098,
+      "q2": 0.452,
+      "q3": 0.5949,
+      "q4": 0.7057
+    },
+    "customer_state_top3_share": 0.6661,
+    "customer_state_hhi": 0.2169,
+    "n_customer_states": 27
+  },
+  "calibration": {
+    "guest_order_share": 0.0776,
+    "purchase_rate_gamma_k": 0.234,
+    "return_rate_scale": 0.915,
+    "sku_popularity_zipf": 0.632,
+    "repeat_customer_share_ref": 0.7239,
+    "online_dow_profile_sun_first": [
+      1.2295,
+      1.2021,
+      0.9561,
+      0.8941,
+      0.8723,
+      0.9277,
+      0.9182
+    ],
+    "online_hour_profile": [
+      0.1597,
+      0.087,
+      0.0529,
+      0.0384,
+      0.0388,
+      0.0671,
+      0.2142,
+      0.6445,
+      1.2501,
+      1.8086,
+      2.0233,
+      1.9975,
+      1.9141,
+      1.9503,
+      1.9856,
+      1.9898,
+      1.912,
+      1.6051,
+      1.2832,
+      0.9861,
+      0.7316,
+      0.548,
+      0.4312,
+      0.2809
+    ],
+    "complement_lift_median": 1.2751,
+    "complement_lift_p90": 1.831,
+    "reorder_rate_ref": 0.5897,
+    "multi_item_order_share": 0.0994,
+    "delivery_days_median_same_region": 6.55,
+    "delivery_days_median_cross_region": 12.79,
+    "late_share": 0.0677,
+    "review_score_share": {
+      "1": 0.1151,
+      "2": 0.0318,
+      "3": 0.0824,
+      "4": 0.1929,
+      "5": 0.5778
+    },
+    "review_score_on_time": 4.29,
+    "review_score_late": 2.271,
+    "review_score_by_late_band": {
+      "on_time": 4.29,
+      "1-3": 3.29,
+      "4-7": 2.104,
+      "8-14": 1.677,
+      "15+": 1.725
+    },
+    "installment_share_by_price_quartile": {
+      "q1": 0.3098,
+      "q2": 0.452,
+      "q3": 0.5949,
+      "q4": 0.7057
+    },
+    "canceled_share": 0.0063,
+    "geo_top3_share": 0.6661
+  }
+}

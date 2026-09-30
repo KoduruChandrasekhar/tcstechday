@@ -1,0 +1,1 @@
+{"version":"0.0.1","configurations":[{"name":"promoforge","runtimeExecutable":"python","runtimeArgs":["-m","uvicorn","app.main:app","--app-dir","backend","--port","8765"],"port":8765}]}
