@@ -44,6 +44,39 @@ h2{font-size:1.15rem;margin:0 0 4px;letter-spacing:-.01em}
 .grid{display:grid;gap:16px}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .muted{color:var(--muted)}.small{font-size:.84rem}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+/* how-to strip (light, inline) */
+.howto{display:flex!important;flex-wrap:wrap;gap:8px 28px;background:none!important;border:0!important;border-radius:0!important;margin:-6px 0 24px!important;overflow:visible!important}
+.howto>div{padding:0!important;border:0!important;align-items:center!important;font-size:.86rem!important;color:var(--muted)!important;gap:10px!important}
+.howto>div>div{display:flex;gap:6px;flex-wrap:wrap}.howto b{display:inline!important;font-size:.86rem!important;font-weight:600}
+.howto .num{width:22px!important;height:22px!important;font-size:.72rem!important}
+/* builder */
+.builder{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,1fr);gap:20px;align-items:start}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:16px 18px;margin-top:6px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}.field.wide{grid-column:1/-1}
+.field label{font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.field select,.field input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font:inherit;font-size:.95rem;color:var(--ink);transition:border-color .15s,box-shadow .15s;appearance:none;-webkit-appearance:none;
+ background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) 55%,calc(100% - 13px) 55%;background-size:5px 5px;background-repeat:no-repeat;padding-right:34px}
+.field input{background-image:none;padding-right:12px}
+.field select:hover,.field input:hover{border-color:var(--muted)}.field select:focus,.field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.field .hint{font-size:.78rem;color:var(--muted)}
+.fixed{padding:10px 12px;border-radius:10px;background:var(--soft);font-size:.95rem;color:var(--ink2)}
+.summary{margin-top:20px;padding-top:16px;border-top:1px solid var(--border);font-size:.95rem;color:var(--ink2);line-height:1.6}.summary b{color:var(--ink)}
+.panel{position:sticky;top:132px;padding:0;overflow:hidden}
+.panel .top{padding:20px 22px;border-bottom:1px solid var(--border);border-top:4px solid var(--c)}
+.panel .lbl{font-size:.74rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.panel .v{font-size:1.75rem;font-weight:700;color:var(--c);letter-spacing:-.02em;margin:2px 0 4px}
+.panel .top p{margin:0;color:var(--ink2);font-size:.95rem}
+.meterrow{display:flex;justify-content:space-between;font-size:.84rem;color:var(--muted);margin-top:14px}.meterrow b{color:var(--ink)}
+.meter2{height:8px;border-radius:5px;background:var(--soft);margin-top:6px;overflow:hidden}.meter2 i{display:block;height:100%;background:var(--c);border-radius:5px}
+.panel .sec{padding:16px 22px;border-bottom:1px solid var(--border)}
+.panel h4{margin:0 0 8px;font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:6px 0;font-size:.92rem;color:var(--ink2)}.kv b{color:var(--ink);white-space:nowrap}
+.ck{display:grid;grid-template-columns:18px 1fr 70px 44px;gap:10px;align-items:center;padding:5px 0;font-size:.9rem}
+.ck svg{color:var(--c)}.ck .t{height:6px;border-radius:4px;background:var(--soft);overflow:hidden}.ck .t i{display:block;height:100%;background:var(--c)}
+.ck .st{font-size:.76rem;font-weight:600;color:var(--c);text-align:right}
+.panel .act{padding:16px 22px;display:flex;flex-direction:column;gap:8px}.panel .act .btn{justify-content:center;width:100%}
+.whycols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 28px}
+@media(max-width:960px){.builder,.fields,.whycols{grid-template-columns:1fr}.panel{position:static}}
 /* how-to strip */
 .howto{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:22px;overflow:hidden}
 .howto>div{padding:14px 18px;display:flex;gap:12px;align-items:flex-start;font-size:.88rem;color:var(--ink2)}
@@ -242,16 +275,16 @@ svg.map text{font-family:Inter,sans-serif;font-size:11px;fill:var(--ink2)}
 <!-- 4 -->
 <section class="page" id="p-forge">
   <div class="kicker">Step 4 of 7</div><h1>Try your own promotion</h1>
-  <p class="lead">Change any highlighted word. We'll instantly tell you whether it makes money, whether stock will last, and why.</p>
-  <div class="howto"><div><span class="num">1</span><div><b>Edit the sentence</b>Try 25% off instead of 10%.</div></div><div><span class="num">2</span><div><b>Read the decision</b>Go, go with a change, wait, or don't run.</div></div><div><span class="num">3</span><div><b>Send it for sign-off</b>When you're happy with it.</div></div></div>
-  <div class="sentence" id="sentence"><div class="skel" style="width:70%"></div></div>
-  <div id="decision"></div>
-  <div class="checks" id="checks"></div>
-  <div class="grid g2">
-    <div class="card why"><h2>Why this decision</h2><div id="why"></div></div>
-    <div class="card"><h2>Will stock last?</h2><p class="sub" id="burn-i"></p><div class="chart"><canvas id="c-burn"></canvas></div></div>
+  <p class="lead">Adjust the promotion on the left. The panel on the right tells you instantly whether it makes money, whether stock will last, and why.</p>
+  <div class="howto"><div><span class="num">1</span><div><b>Adjust the setup</b>Try 25% off instead of 10%.</div></div><div><span class="num">2</span><div><b>Read the decision</b>Go, go with a change, wait, or don't run.</div></div><div><span class="num">3</span><div><b>Send it for sign-off</b>When you're happy with it.</div></div></div>
+  <div class="builder">
+    <div class="grid" style="gap:20px">
+      <div class="card"><h2>Promotion setup</h2><p class="sub">Every change is checked instantly.</p><div class="fields" id="fields"><div class="skel"></div></div><div class="summary" id="summary"></div></div>
+      <div class="card why"><h2>Why this decision</h2><div id="why"></div></div>
+      <div class="card"><h2>Will stock last?</h2><p class="sub" id="burn-i"></p><div class="chart"><canvas id="c-burn"></canvas></div></div>
+    </div>
+    <aside class="card panel" id="panel"><div style="padding:22px"><div class="skel"></div></div></aside>
   </div>
-  <div class="sendbar"><div><b>Happy with this promotion?</b><div class="small muted">Marketing, Merchandising and Store Ops will each review it.</div></div><div class="row"><span id="send-msg" class="small muted"></span><button class="btn" id="submit">Send for sign-off <span data-ic="arrow"></span></button></div></div>
   <details class="more"><summary><div>More detail<small>Compare discount levels · where the profit goes · past sales · similar promotions</small></div></summary><div class="inner grid g2">
     <div class="card"><h2>Compare discount levels</h2><p class="sub" id="front-i"></p><div class="bars" id="front"></div></div>
     <div class="card"><h2>Where the profit goes</h2><p class="sub" id="water-i"></p><div class="bars" id="water"></div></div>
@@ -385,19 +418,28 @@ function renderMission(d){const k=d.kpis,c=k.counts,I=d.insights||{},safe=c.GO+c
 /* 4 builder */
 const sel=(id,opts,val)=>`<select id="${id}">${opts.map(([v,l])=>`<option value="${v}" ${v==val?'selected':''}>${l}</option>`).join('')}</select>`;
 function openForge(r,silent){CUR={segment:r.segment,sku:r.sku,city:r.city,offer_idx:r.offer_idx,channel:r.channel,cap:r.cap||null,window:$('#win').value};renderSentence();simulate();if(!silent)go('forge')}
-function renderSentence(){const c=CUR;$('#sentence').innerHTML=`Offer ${sel('s-offer',META.offers.map((o,i)=>[i,o]),c.offer_idx)} on ${sel('s-sku',META.products.map(p=>[p.sku,p.name]),c.sku)} to ${sel('s-seg',Object.keys(META.segments).map(k=>[k,k]),c.segment)} in ${sel('s-city',META.cities.map(x=>[x.code,x.name]),c.city)} during <b>${META.windows[c.window].name}</b>, sent by ${sel('s-ch',META.channels.map(x=>[x,x]),c.channel)}, limited to <input id="s-cap" type="number" min="1" placeholder="no limit" value="${c.cap??''}"> units.`;
- $('#sentence').onchange=()=>{Object.assign(CUR,{offer_idx:+$('#s-offer').value,segment:$('#s-seg').value,sku:$('#s-sku').value,city:$('#s-city').value,channel:$('#s-ch').value,cap:+$('#s-cap').value>0?Math.round(+$('#s-cap').value):null});if($('#s-cap').value&&!(+$('#s-cap').value>0)){$('#s-cap').value='';toast('Limit must be a positive number, so it was removed')}simulate()}}
-async function simulate(){const prev=CUR.last,ok=latest('sim');$('#submit').disabled=true;$('#decision').style.opacity=.5;let r;
- try{r=await api('/api/simulate',{...CUR,last:undefined})}catch(e){if(ok()){$('#decision').style.opacity=1;showErr($('#decision'),e,simulate)}return}
- if(!ok())return;$('#decision').style.opacity=1;r.drivers=r.drivers||[];r.risks=r.risks||[];r.blocks=r.blocks||[];r.what_would_change=r.what_would_change||[];r.burn=r.burn||[];r.frontier=r.frontier||[];r.twins=r.twins||[];r.history=r.history||{weeks:[],units:[]};r.scores=r.scores||{};CUR.last=r;$('#send-msg').textContent='';renderForge(r);
+function renderSentence(){const c=CUR,F=(l,h,w,hint)=>`<div class="field ${w?'wide':''}"><label>${l}</label>${h}${hint?`<span class="hint">${hint}</span>`:''}</div>`;
+ $('#fields').innerHTML=F('Product',sel('s-sku',META.products.map(p=>[p.sku,esc(p.name)]),c.sku),1)+F('Discount',sel('s-offer',META.offers.map((o,i)=>[i,esc(o)]),c.offer_idx))+F('Customer group',sel('s-seg',Object.keys(META.segments).map(k=>[k,esc(k)]),c.segment))
+  +F('City',sel('s-city',META.cities.map(x=>[x.code,esc(x.name)]),c.city))+F('Sent by',sel('s-ch',META.channels.map(x=>[x,esc(x)]),c.channel))
+  +F('Season',`<div class="fixed">${esc(META.windows[c.window].name)}</div>`,0,'Change it at the top of the page')+F('Unit limit',`<input id="s-cap" type="number" min="1" placeholder="No limit" value="${c.cap??''}">`,0,'Optional');
+ renderSummary();
+ $('#fields').onchange=()=>{Object.assign(CUR,{offer_idx:+$('#s-offer').value,segment:$('#s-seg').value,sku:$('#s-sku').value,city:$('#s-city').value,channel:$('#s-ch').value,cap:+$('#s-cap').value>0?Math.round(+$('#s-cap').value):null});if($('#s-cap').value&&!(+$('#s-cap').value>0)){$('#s-cap').value='';toast('Limit must be a positive number, so it was removed')}renderSummary();simulate()}}
+function renderSummary(){const c=CUR,o=$('#s-offer'),p=$('#s-sku'),g=$('#s-city');$('#summary').innerHTML=`<b>In short:</b> ${esc(o.options[o.selectedIndex].text)} on <b>${esc(p.options[p.selectedIndex].text)}</b> for ${esc(c.segment)} in ${esc(g.options[g.selectedIndex].text)}, via ${esc(c.channel)}${c.cap?`, up to ${num(c.cap)} units`:''}.`}
+async function simulate(){const prev=CUR.last,ok=latest('sim');$('#submit')&&($('#submit').disabled=true);$('#panel').style.opacity=.55;let r;
+ try{r=await api('/api/simulate',{...CUR,last:undefined})}catch(e){if(ok()){$('#panel').style.opacity=1;showErr($('#panel'),e,simulate)}return}
+ if(!ok())return;$('#panel').style.opacity=1;r.drivers=r.drivers||[];r.risks=r.risks||[];r.blocks=r.blocks||[];r.what_would_change=r.what_would_change||[];r.burn=r.burn||[];r.frontier=r.frontier||[];r.twins=r.twins||[];r.history=r.history||{weeks:[],units:[]};r.scores=r.scores||{};CUR.last=r;renderForge(r);
  if(prev&&PAGE==='forge'&&prev.verdict!==r.verdict)toast(`Decision changed: ${V[vk(prev.verdict)][0]} → ${V[vk(r.verdict)][0]}`)}
 function renderForge(r){const I=r.insights||{},[vl,vd,vc]=V[vk(r.verdict)];
- $('#decision').innerHTML=`<div class="decision" style="--c:var(${vc})"><div class="l"><div class="lbl">Our decision</div><div class="v">${vl}</div><p>${vk(r.verdict)==='BLOCK'&&r.blocks[0]?esc(r.blocks[0])+'.':vd}</p><div class="small muted" style="margin-top:10px">Confidence score <b style="color:var(--ink)">${Math.round(r.readiness)}/100</b></div></div>
-  <div class="r"><div><span>Extra profit</span><b style="color:${fin(r.net_gp)>=0?'var(--good)':'var(--bad)'}">${r.fmt?.net_gp??inr(r.net_gp)}</b></div><div><span>Extra units sold</span><b>${num(r.incr_units)}</b></div><div><span>Chance of selling out</span><b style="color:${r.p_stockout>.2?'var(--bad)':'var(--ink)'}">${(fin(r.p_stockout)*100).toFixed(0)}%</b></div><div><span>Discount wasted on people who'd buy anyway</span><b>${r.fmt?.leakage??inr(r.leakage)}</b></div></div></div>`;
- const CK=[['profit','Makes money'],['stock','Stock will last'],['uplift','Customers respond'],['ops','Stores can cope'],['fatigue','Not over-messaged']];
- $('#checks').innerHTML=CK.map(([k,n])=>{const v=Math.round(fin(r.scores[k])),c=v>=70?'--good':v>=40?'--warn':'--bad',st=v>=70?'Good':v>=40?'Okay':'Risk';return `<div class="chk" style="--c:var(${c})"><span class="ic">${icon(v>=70?'check':v>=40?'minus':'alert',15)}</span><div><div class="nm">${n}</div><div class="s">${st} · ${v}/100</div></div></div>`}).join('');
+ const CK=[['profit','Makes money'],['stock','Stock will last'],['uplift','Customers respond'],['ops','Stores can cope'],['fatigue','Not over-messaged']],rd=Math.round(fin(r.readiness)),blocked=vk(r.verdict)==='BLOCK';
+ const kv=(l,v,c)=>`<div class="kv"><span>${l}</span><b ${c?`style="color:${c}"`:''}>${v}</b></div>`;
+ $('#panel').style.setProperty('--c',`var(${vc})`);
+ $('#panel').innerHTML=`<div class="top"><div class="lbl">Our decision</div><div class="v">${vl}</div><p>${blocked&&r.blocks[0]?esc(r.blocks[0])+'.':vd}</p>
+  <div class="meterrow"><span>Confidence</span><b>${rd}/100</b></div><div class="meter2"><i style="width:${Math.max(2,Math.min(100,rd))}%"></i></div></div>
+  <div class="sec"><h4>Expected result</h4>${kv('Extra profit',r.fmt?.net_gp??inr(r.net_gp),fin(r.net_gp)>=0?'var(--good)':'var(--bad)')}${kv('Extra units sold',num(r.incr_units))}${kv('Chance of selling out',(fin(r.p_stockout)*100).toFixed(0)+'%',fin(r.p_stockout)>.2?'var(--bad)':'')}${kv("Discount wasted on people who'd buy anyway",r.fmt?.leakage??inr(r.leakage))}</div>
+  <div class="sec"><h4>Five checks</h4>${CK.map(([k,n])=>{const v=Math.round(fin(r.scores[k])),c=v>=70?'--good':v>=40?'--warn':'--bad';return `<div class="ck" style="--c:var(${c})">${icon(v>=70?'check':v>=40?'minus':'alert',16)}<span>${n}</span><span class="t"><i style="width:${Math.max(3,v)}%"></i></span><span class="st">${v>=70?'Good':v>=40?'Okay':'Risk'}</span></div>`}).join('')}</div>
+  <div class="act"><button class="btn" id="submit" ${blocked?'disabled title="Fix the promotion first"':''}>Send for sign-off ${icon('arrow',16)}</button><span id="send-msg" class="small muted" style="text-align:center">${blocked?'Blocked promotions can’t be sent. Try a fix from “What would change this”.':'Marketing, Merchandising and Store Ops will each review it.'}</span></div>`;
  const li=a=>a.length?`<ul>${a.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<p class="small muted" style="margin:0">Nothing to add.</p>';
- $('#why').innerHTML=`<h3 style="color:var(--good)">${icon('plus',15)} What helps</h3>${li(r.drivers)}`+(r.blocks.length?`<h3 style="color:var(--bad)">${icon('x',15)} What stops it</h3>${li(r.blocks)}`:'')+(r.risks.length?`<h3 style="color:var(--warn)">${icon('alert',15)} Watch out for</h3>${li(r.risks)}`:'')+`<h3 style="color:var(--info)">${icon('bulb',15)} What would change this</h3>${li(r.what_would_change)}`;
+ $('#why').innerHTML=`<div class="whycols"><div><h3 style="color:var(--good)">${icon('plus',15)} What helps</h3>${li(r.drivers)}</div><div>`+(r.blocks.length?`<h3 style="color:var(--bad)">${icon('x',15)} What stops it</h3>${li(r.blocks)}`:'')+(r.risks.length?`<h3 style="color:var(--warn)">${icon('alert',15)} Watch out for</h3>${li(r.risks)}`:'')+`<h3 style="color:var(--info)">${icon('bulb',15)} What would change this</h3>${li(r.what_would_change)}</div></div>`;
  $('#burn-i').textContent=I.burn||'';$('#front-i').textContent=I.frontier||'';$('#water-i').textContent=I.waterfall||'';$('#hist-i').textContent=I.history||'';$('#twins-i').textContent=I.twins||'';
  if(!r.burn.length)noData('c-burn','No stock data for this product and city.');else{const s0=Math.max(fin(r.burn[0]),1),lvl=v=>v<=0?css('--bad'):v/s0<.25?css('--warn'):css('--accent');
  chart('c-burn',{type:'bar',data:{labels:r.burn.map((_,i)=>'Day '+(i+1)),datasets:[{label:'Units left',data:r.burn.map(fin),backgroundColor:r.burn.map(v=>lvl(fin(v))),borderRadius:6,maxBarThickness:42}]},
@@ -409,9 +451,8 @@ function renderForge(r){const I=r.insights||{},[vl,vd,vc]=V[vk(r.verdict)];
  const hu=(r.history.units||[]).map(fin);if(!hu.length||hu.every(v=>v===0))noData('c-hist','No sales history for this city and category yet.');else{const avg=hu.reduce((a,b)=>a+b,0)/hu.length,n=hu.length;
  chart('c-hist',{data:{labels:r.history.weeks,datasets:[{type:'bar',label:'Last 8 weeks',data:hu.map((v,i)=>i>=n-8?v:null),backgroundColor:css('--accent'),borderRadius:3,grouped:false},{type:'bar',label:'Earlier weeks',data:hu.map((v,i)=>i<n-8?v:null),backgroundColor:css('--neutral'),borderRadius:3,grouped:false},{type:'line',label:'Yearly average',data:hu.map(()=>avg),borderColor:css('--ink2'),borderDash:[5,4],borderWidth:1.5,pointRadius:0}]},
   options:{plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8}},tooltip:{callbacks:{label:c=>c.raw==null?null:`${c.dataset.label}: ${num(c.raw)} units`}}},scales:{x:{ticks:{maxTicksLimit:6},grid:{display:false}},y:{beginAtZero:true,grid:{color:css('--grid')},title:{display:true,text:'Units sold per week'}}}}});}
- $('#twins').innerHTML=r.twins.length?r.twins.map(t=>`<div class="lrow"><div class="grow"><div>${esc(t.name)}</div><div class="small muted">Expected ${t.pred_roi}× · actual ${t.actual_roi}×</div></div><span class="pill ${t.actual_roi>=t.pred_roi?'p-GO':'p-CONDITIONAL'}">${t.actual_roi>=t.pred_roi?'Beat forecast':'Below forecast'}</span></div>`).join(''):'<p class="muted small">No similar past promotions found.</p>';
- $('#submit').disabled=vk(r.verdict)==='BLOCK';$('#submit').title=vk(r.verdict)==='BLOCK'?'Fix the promotion first':''}
-$('#submit').onclick=async()=>{const b=$('#submit');if(b.disabled)return;b.disabled=true;try{const c=await api('/api/campaigns',{...CUR,last:undefined});toast(`Promotion ${c.id} sent for sign-off`);go('approve')}catch(e){$('#send-msg').textContent=errMsg(e)}finally{b.disabled=vk(CUR?.last?.verdict)==='BLOCK'}};
+ $('#twins').innerHTML=r.twins.length?r.twins.map(t=>`<div class="lrow"><div class="grow"><div>${esc(t.name)}</div><div class="small muted">Expected ${t.pred_roi}× · actual ${t.actual_roi}×</div></div><span class="pill ${t.actual_roi>=t.pred_roi?'p-GO':'p-CONDITIONAL'}">${t.actual_roi>=t.pred_roi?'Beat forecast':'Below forecast'}</span></div>`).join(''):'<p class="muted small">No similar past promotions found.</p>';}
+$('#panel').onclick=async e=>{const b=e.target.closest('#submit');if(!b||b.disabled)return;b.disabled=true;try{const c=await api('/api/campaigns',{...CUR,last:undefined});toast(`Promotion ${c.id} sent for sign-off`);go('approve')}catch(e){$('#send-msg').textContent=errMsg(e)}finally{b.disabled=vk(CUR?.last?.verdict)==='BLOCK'}};
 
 /* 5 blocked */
 function renderCourt(bl){$('#court').innerHTML=bl.length?bl.map(r=>`<div class="bcard"><div class="row" style="justify-content:space-between"><span class="offer">${esc(r.offer)}</span>${pill('BLOCK')}</div><div class="prod">${esc(r.product)}</div>
