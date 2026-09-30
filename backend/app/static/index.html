@@ -244,6 +244,23 @@ select.pick{border-radius:8px;padding:6px 10px}
 .pill{font-size:.74rem;padding:3px 9px}
 details.more{border-radius:12px;box-shadow:var(--shadow)}
 .section{margin-top:32px}
+/* ---------- dynamic elements ---------- */
+.count{display:inline-flex;align-items:center;gap:8px;background:var(--warn-soft);color:var(--warn);border-radius:999px;padding:5px 12px;font-size:.8rem;font-weight:600;white-space:nowrap}
+.count b{font-size:.95rem}
+.tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.search{flex:1;min-width:200px;max-width:340px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font:inherit;font-size:.88rem;color:var(--ink)}
+.search:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.seg2{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg2 button{border:0;background:none;padding:6px 11px;font-size:.82rem;color:var(--muted);cursor:pointer}.seg2 button+button{border-left:1px solid var(--border)}
+.seg2 button.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+svg.map g.city{cursor:pointer}svg.map g.city:hover text{fill:var(--accent)}
+svg.map g.city.sel circle.dot{r:5;fill:var(--accent)}
+.cityp{margin-top:14px;border-top:1px solid var(--border);padding-top:14px}
+.cityp .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.stat3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}.stat3 div{background:var(--soft);border-radius:8px;padding:8px 10px;font-size:.78rem;color:var(--muted)}.stat3 b{display:block;font-size:1.1rem;color:var(--ink)}
+.delta{font-size:.76rem;font-weight:600;margin-left:6px}.delta.up{color:var(--good)}.delta.dn{color:var(--bad)}.delta.eq{color:var(--muted)}
+.pinbar{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.8rem;color:var(--muted);background:var(--soft);border-radius:8px;padding:8px 10px}
+.btn.xs{padding:4px 9px;font-size:.78rem;border-radius:7px}
 /* ---------- motion & wow ---------- */
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .pcard,.segcard,.bcard,#opps .note,.team,.pipe>div{animation:rise .45s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0)*55ms)}
@@ -274,7 +291,7 @@ details.more{border-radius:12px;box-shadow:var(--shadow)}
 <header class="hdr">
   <div class="hdr-row">
     <div class="brand"><span class="mk" id="logo-ic"></span><div><b>Prometheus PromoForge</b><span>Plan festival promotions that make money and don't run out of stock</span></div></div>
-    <div class="hdr-right"><span>Season</span><select class="pick" id="win"></select><button class="tip-btn on" id="tips">Help tips on</button><button class="tip-btn" id="theme" aria-label="Switch light or dark mode"></button></div>
+    <div class="hdr-right"><span class="count" id="countdown"></span><span>Season</span><select class="pick" id="win"></select><button class="tip-btn on" id="tips">Help tips on</button><button class="tip-btn" id="theme" aria-label="Switch light or dark mode"></button></div>
   </div>
   <nav class="stepper" id="stepper"></nav>
 </header>
@@ -290,6 +307,7 @@ details.more{border-radius:12px;box-shadow:var(--shadow)}
   <div class="answer"><span class="ic" data-ic="spark"></span><div><div class="lbl">In one line</div><p id="m-insight"><span class="skel" style="display:block;width:70%"></span></p></div></div>
   <div class="pipe" id="pipe"></div>
   <div class="section"><div class="row" style="justify-content:space-between;align-items:flex-end"><div><h2>Our top picks</h2><p class="sub">Click a card to see why it was picked</p></div><button class="link" id="more-picks"></button></div>
+    <div class="tools"><input class="search" id="psearch" placeholder="Search product, city or customer group…" aria-label="Search promotions"><span class="small muted">Sort by</span><div class="seg2" id="psort"><button class="on" data-s="rank">Best match</button><button data-s="profit">Profit</button><button data-s="conf">Confidence</button><button data-s="risk">Lowest risk</button></div></div>
     <div class="pcards" id="picks"></div></div>
   <div class="section"><h2>Things we noticed</h2><p class="sub">Signals from sales, stock and online searches</p><div class="grid g2" id="opps"></div></div>
   <details class="more"><summary><div>More detail<small>Why promotions were blocked · extra profit by category</small></div></summary><div class="inner grid g2">
@@ -306,8 +324,8 @@ details.more{border-radius:12px;box-shadow:var(--shadow)}
   <div class="howto"><div><span class="num">1</span><div><b>Red circles</b>Products about to run out in that city.</div></div><div><span class="num">2</span><div><b>Blue circles</b>Products we have more of than we need.</div></div><div><span class="num">3</span><div><b>Dashed lines</b>Suggested stock moves, with no new orders needed.</div></div></div>
   <div class="answer"><span class="ic" data-ic="truck"></span><div><div class="lbl">In one line</div><p id="map-i"></p></div></div>
   <div class="grid g2">
-    <div class="card"><h2>Stock across cities</h2><p class="sub">Hover a city for details</p><svg class="map" id="map" viewBox="0 0 440 470" style="width:100%;max-height:520px"></svg>
-      <div class="legend"><span><i style="background:var(--bad)"></i>Running short</span><span><i style="background:var(--info)"></i>Too much stock</span><span><i style="background:var(--accent)"></i>Suggested move</span></div></div>
+    <div class="card"><h2>Stock across cities</h2><p class="sub">Click a city to see what’s short and what’s in surplus there</p><svg class="map" id="map" viewBox="0 0 440 470" style="width:100%;max-height:520px"></svg>
+      <div id="cityp"></div><div class="legend"><span><i style="background:var(--bad)"></i>Running short</span><span><i style="background:var(--info)"></i>Too much stock</span><span><i style="background:var(--accent)"></i>Suggested move</span></div></div>
     <div class="grid" style="align-content:start">
       <div class="card"><h2>Suggested stock moves</h2><p class="sub">Move these before promoting</p><div id="xfer"></div></div>
       <div class="card"><h2>About to run out</h2><p class="sub">Days the current stock will last at today's sales</p><div id="gaps"></div></div>
@@ -376,7 +394,7 @@ details.more{border-radius:12px;box-shadow:var(--shadow)}
   <div class="answer"><span class="ic" data-ic="check"></span><div><div class="lbl">In one line</div><p id="mem-i"></p></div></div>
   <div class="grid g2">
     <div class="card"><h2>Expected vs actual return</h2><p class="sub">Each dot is a past promotion. Dots near the line = accurate forecast.</p><div class="chart" style="height:320px"><canvas id="c-cal"></canvas></div><p class="small muted" id="cal-note" style="margin:10px 0 0"></p></div>
-    <div class="card"><h2>Recent promotions</h2><p class="sub">Return per ₹1 of discount spent</p><div style="max-height:360px;overflow:auto"><table id="mem"></table></div></div>
+    <div class="card"><h2>Recent promotions</h2><p class="sub">Return per ₹1 of discount spent</p><div class="chips" id="memf" style="margin-bottom:10px"></div><div style="max-height:360px;overflow:auto"><table id="mem"></table></div></div>
   </div>
   <div class="pager" data-pager></div>
 </section>
@@ -414,7 +432,7 @@ const hasData=id=>{const c=$('#'+id);c.style.display='';c.parentElement.querySel
 const barRow=(label,right,pct,color,hl)=>`<div class="bl ${hl?'hl':''}"><div class="top"><span>${label}</span><span>${right}</span></div><div class="track"><i style="width:${Math.max(2,Math.min(100,fin(pct)))}%;background:${color||'var(--accent)'}"></i></div></div>`;
 
 const STEPS=[['mission','Top picks'],['map','Stock check'],['audience','Customers'],['forge','Build a promotion'],['court','Blocked'],['approve','Sign-off'],['memory','Past results']];
-let META,CUR,LAST,PAGE='mission',OBJ='profit',SHOWALL=false;
+let MAPD,MEMF='',META,CUR,LAST,PAGE='mission',OBJ='profit',SHOWALL=false;
 $('#logo-ic').innerHTML=icon('logo',18);$$('[data-ic]').forEach(e=>e.innerHTML=icon(e.dataset.ic,e.classList.contains('ic')?20:16));
 $('#stepper').innerHTML=STEPS.map(([k,t],i)=>`<button class="st" data-p="${k}"><span class="n">${i+1}</span>${t}</button>`).join('');
 $('#stepper').onclick=e=>{const b=e.target.closest('[data-p]');b&&go(b.dataset.p)};
@@ -435,31 +453,39 @@ function setTheme(t,redraw){document.documentElement.dataset.theme=t;$('#theme')
 $('#theme').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark',true);
 setTheme(store.get('theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'));
 
+function renderCountdown(){const w=META.windows[$('#win').value];if(!w)return;const t=new Date(META.today),a=new Date(w.start),b=new Date(w.end),d=Math.round((a-t)/864e5),e=Math.round((b-t)/864e5);
+ $('#countdown').innerHTML=d>0?`${icon('cal',14)}<span><b>${d}</b> day${d>1?'s':''} to ${esc(w.name)}</span>`:e>=0?`${icon('cal',14)}<span>${esc(w.name)} is <b>live now</b></span>`:`${icon('cal',14)}<span>${esc(w.name)} ended</span>`}
 async function init(){setTips(store.get('tips')!=='0');
  try{META=await api('/api/meta')}catch(e){showErr($('main'),e,()=>location.reload());return}
  META.cities.forEach(c=>$('#fcity').innerHTML+=`<option value="${esc(c.code)}">${esc(c.name)}</option>`);
  [...new Set(META.products.map(p=>p.cat))].sort().forEach(c=>$('#fcat').innerHTML+=`<option>${esc(c)}</option>`);
  const wk=Object.keys(META.windows);Object.entries(META.windows).forEach(([k,v])=>$('#win').innerHTML+=`<option value="${k}" ${k===(wk.includes('diwali')?'diwali':wk[0])?'selected':''}>${esc(v.name)}</option>`);
- $('#win').onchange=()=>{CUR=null;SHOWALL=false;loadMission();PAGE==='map'&&loadMap()};
+ $('#win').onchange=()=>{renderCountdown();CUR=null;SHOWALL=false;loadMission();PAGE==='map'&&loadMap()};
  ['#fcity','#fcat'].forEach(s=>$(s).onchange=loadMission);
  $('#obj').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;if(b.dataset.v===OBJ)return;OBJ=b.dataset.v;SHOWALL=false;$$('#obj .chip').forEach(x=>x.classList.toggle('on',x===b));loadMission()};
- $('#more-picks').onclick=()=>{SHOWALL=!SHOWALL;LAST&&renderPicks(LAST)};
+ $('#psearch').oninput=e=>{PQ=e.target.value;LAST&&renderPicks(LAST)};
+ $('#psort').onclick=e=>{const b=e.target.closest('[data-s]');if(!b)return;PS=b.dataset.s;$$('#psort button').forEach(x=>x.classList.toggle('on',x===b));LAST&&renderPicks(LAST)};
+ $('#more-picks').onclick=()=>{if(PQ)return;SHOWALL=!SHOWALL;LAST&&renderPicks(LAST)};
  const RL={min_gp_margin:v=>`Keep at least ${(v*100).toFixed(0)}% profit margin after discount`,max_stockout_prob:v=>`Less than ${(v*100).toFixed(0)}% chance of selling out`,max_capacity_load:()=>`Stores must have enough installation slots`,max_leakage_share:v=>`No more than ${(v*100).toFixed(0)}% of the discount wasted`,max_fatigue:v=>`Don't over-message customers (max ${v} recent promos)`,min_segment_size:v=>`Only target groups of ${v}+ customers (privacy)`};
  $('#rules').innerHTML=Object.entries(META.guardrails).map(([k,v])=>`<span class="rule">${icon('shield',16)}${RL[k]?RL[k](v):k+': '+v}</span>`).join('');
- await loadMission();const h=location.hash.slice(1);go(STEPS.some(s=>s[0]===h)?h:'mission')}
+ renderCountdown();await loadMission();const h=location.hash.slice(1);go(STEPS.some(s=>s[0]===h)?h:'mission')}
 
 /* 1 top picks */
 async function loadMission(){const q=new URLSearchParams({objective:OBJ,window:$('#win').value});$('#fcity').value&&q.set('city',$('#fcity').value);$('#fcat').value&&q.set('category',$('#fcat').value);
  $('#picks').innerHTML='<div class="card"><div class="skel"></div><div class="skel" style="width:60%;margin-top:10px"></div></div>'.repeat(3);const ok=latest('mission');
  let d;try{d=await api('/api/recommendations?'+q)}catch(e){if(ok())showErr($('#picks'),e,loadMission);return}
  if(!ok())return;d.top=d.top||[];d.blocked=d.blocked||[];d.opportunities=d.opportunities||[];LAST=d;renderMission(d);if(!CUR&&d.top[0])openForge(d.top[0],true)}
-function renderPicks(d){const list=SHOWALL?d.top:d.top.slice(0,6);
- $('#more-picks').textContent=d.top.length>6?(SHOWALL?'Show fewer':`Show all ${d.top.length}`):'';
- $('#picks').innerHTML=list.length?list.map((r,i)=>`<div class="pcard" data-i="${i}"><div class="row" style="justify-content:space-between"><span class="rank">#${i+1}</span>${pill(r.verdict)}</div>
+let PQ='',PS='rank';
+function renderPicks(d){const qq=PQ.trim().toLowerCase(),idx=d.top.map((r,i)=>({...r,_rank:i+1}));
+ let all=idx.filter(r=>!qq||[r.product,r.city_name,r.segment,r.offer,r.category].join(' ').toLowerCase().includes(qq));
+ const S={profit:(a,b)=>fin(b.net_gp)-fin(a.net_gp),conf:(a,b)=>fin(b.readiness)-fin(a.readiness),risk:(a,b)=>fin(a.p_stockout)-fin(b.p_stockout)||fin(b.net_gp)-fin(a.net_gp)};if(S[PS])all=all.slice().sort(S[PS]);
+ const list=SHOWALL||qq?all:all.slice(0,6);
+ $('#more-picks').textContent=qq?`${all.length} match${all.length===1?'':'es'}`:d.top.length>6?(SHOWALL?'Show fewer':`Show all ${d.top.length}`):'';
+ $('#picks').innerHTML=list.length?list.map((r,i)=>`<div class="pcard" data-i="${i}"><div class="row" style="justify-content:space-between"><span class="rank">#${r._rank}</span>${pill(r.verdict)}</div>
   <div class="prod">${esc(r.product)}</div><span class="offer">${esc(r.offer)}</span>
   <div class="meta"><span>${icon('users',15)}${esc(r.segment)}</span><span>${icon('pin',15)}${esc(r.city_name)}</span></div>
   <div class="foot"><div><div class="money-l">Extra profit</div><div class="money" style="color:${fin(r.net_gp)<0?'var(--bad)':'var(--good)'}" data-count="${fin(r.net_gp)}" data-fmt="inr">${r.fmt?.net_gp??inr(r.net_gp)}</div></div><div class="conf"><div class="money-l">Confidence ${Math.round(r.readiness)}</div><div class="track"><i style="width:${r.readiness}%"></i></div></div></div></div>`).join('')
-  :'<div class="card empty" style="grid-column:1/-1"><b>No safe promotions for this filter</b>Try another goal or city, or see what was blocked.<div style="margin-top:12px"><button class="btn ghost sm" data-go="court">See blocked promotions</button></div></div>';
+  :qq?`<div class="card empty" style="grid-column:1/-1"><b>No picks match “${esc(PQ)}”</b>Try a product, city or customer group name.</div>`:'<div class="card empty" style="grid-column:1/-1"><b>No safe promotions for this filter</b>Try another goal or city, or see what was blocked.<div style="margin-top:12px"><button class="btn ghost sm" data-go="court">See blocked promotions</button></div></div>';
  countUp($('#picks'));stagger($('#picks'));
  $('#picks').onclick=e=>{const c=e.target.closest('.pcard');c&&openForge(list[c.dataset.i])}}
 function renderMission(d){const k=d.kpis,c=k.counts,I=d.insights||{},safe=c.GO+c['CONDITIONAL GO'];
@@ -495,11 +521,14 @@ async function simulate(){const prev=CUR.last,ok=latest('sim');$('#submit')&&($(
  if(prev&&PAGE==='forge'&&prev.verdict!==r.verdict)toast(`Decision changed: ${V[vk(prev.verdict)][0]} → ${V[vk(r.verdict)][0]}`)}
 function renderForge(r){const I=r.insights||{},[vl,vd,vc]=V[vk(r.verdict)];
  const CK=[['profit','Makes money'],['stock','Stock will last'],['uplift','Customers respond'],['ops','Stores can cope'],['fatigue','Not over-messaged']],rd=Math.round(fin(r.readiness)),blocked=vk(r.verdict)==='BLOCK';
- const kv=(l,v,c)=>`<div class="kv"><span>${l}</span><b ${c?`style="color:${c}"`:''}>${v}</b></div>`;
+ const B=PIN&&PIN.key!==JSON.stringify(scen())?PIN.r:null;
+ const dl=(a,b,f,better)=>{if(!B)return'';const d=fin(a)-fin(b);if(Math.abs(d)<1e-9)return'<span class="delta eq">same</span>';const good=better==='up'?d>0:d<0;return `<span class="delta ${good?'up':'dn'}">${d>0?'▲':'▼'} ${f(Math.abs(d))}</span>`};
+ const kv=(l,v,c,dd)=>`<div class="kv"><span>${l}</span><b ${c?`style="color:${c}"`:''}>${v}${dd||''}</b></div>`;
  $('#panel').style.setProperty('--c',`var(${vc})`);
  $('#panel').innerHTML=`<div class="top"><div class="lbl">Our decision</div><div class="v">${vl}</div><p>${blocked&&r.blocks[0]?esc(r.blocks[0])+'.':vd}</p>
   <div class="meterrow"><span>Confidence</span><b>${rd}/100</b></div><div class="meter2"><i style="width:${Math.max(2,Math.min(100,rd))}%"></i></div></div>
-  <div class="sec"><h4>Expected result</h4>${kv('Extra profit',r.fmt?.net_gp??inr(r.net_gp),fin(r.net_gp)>=0?'var(--good)':'var(--bad)')}${kv('Extra units sold',num(r.incr_units))}${kv('Chance of selling out',(fin(r.p_stockout)*100).toFixed(0)+'%',fin(r.p_stockout)>.2?'var(--bad)':'')}${kv("Discount wasted on people who'd buy anyway",r.fmt?.leakage??inr(r.leakage))}</div>
+  <div class="sec"><h4>Expected result</h4>${kv('Extra profit',r.fmt?.net_gp??inr(r.net_gp),fin(r.net_gp)>=0?'var(--good)':'var(--bad)',dl(r.net_gp,B?.net_gp,inr,'up'))}${kv('Extra units sold',num(r.incr_units),'',dl(r.incr_units,B?.incr_units,num,'up'))}${kv('Chance of selling out',(fin(r.p_stockout)*100).toFixed(0)+'%',fin(r.p_stockout)>.2?'var(--bad)':'',dl(r.p_stockout*100,B?.p_stockout*100,v=>v.toFixed(0)+' pts','down'))}${kv("Discount wasted on people who'd buy anyway",r.fmt?.leakage??inr(r.leakage),'',dl(r.leakage,B?.leakage,inr,'down'))}
+  <div class="pinbar" style="margin-top:10px">${PIN?`<span>${B?`Compared with pinned: <b style="color:var(--ink)">${esc(PIN.label)}</b>`:'This is your pinned version. Change something to compare.'}</span><button class="btn ghost xs" data-pin="clear">Unpin</button>`:`<span>Pin this version, then change things to compare.</span><button class="btn ghost xs" data-pin="set">📌 Pin</button>`}</div></div>
   <div class="sec"><h4>Five checks</h4>${CK.map(([k,n])=>{const v=Math.round(fin(r.scores[k])),c=v>=70?'--good':v>=40?'--warn':'--bad';return `<div class="ck" style="--c:var(${c})">${icon(v>=70?'check':v>=40?'minus':'alert',16)}<span>${n}</span><span class="t"><i style="width:${Math.max(3,v)}%"></i></span><span class="st">${v>=70?'Good':v>=40?'Okay':'Risk'}</span></div>`}).join('')}</div>
   <div class="act"><button class="btn" id="submit" ${blocked?'disabled title="Fix the promotion first"':''}>Send for sign-off ${icon('arrow',16)}</button><span id="send-msg" class="small muted" style="text-align:center">${blocked?'Blocked promotions can’t be sent. Try a fix from “What would change this”.':'Marketing, Merchandising and Store Ops will each review it.'}</span></div>`;
  const li=a=>a.length?`<ul>${a.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<p class="small muted" style="margin:0">Nothing to add.</p>';
@@ -516,6 +545,8 @@ function renderForge(r){const I=r.insights||{},[vl,vd,vc]=V[vk(r.verdict)];
  chart('c-hist',{data:{labels:r.history.weeks,datasets:[{type:'bar',label:'Last 8 weeks',data:hu.map((v,i)=>i>=n-8?v:null),backgroundColor:css('--accent'),borderRadius:3,grouped:false},{type:'bar',label:'Earlier weeks',data:hu.map((v,i)=>i<n-8?v:null),backgroundColor:css('--neutral'),borderRadius:3,grouped:false},{type:'line',label:'Yearly average',data:hu.map(()=>avg),borderColor:css('--ink2'),borderDash:[5,4],borderWidth:1.5,pointRadius:0}]},
   options:{plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8}},tooltip:{callbacks:{label:c=>c.raw==null?null:`${c.dataset.label}: ${num(c.raw)} units`}}},scales:{x:{ticks:{maxTicksLimit:6},grid:{display:false}},y:{beginAtZero:true,grid:{color:css('--grid')},title:{display:true,text:'Units sold per week'}}}}});}
  $('#twins').innerHTML=r.twins.length?r.twins.map(t=>`<div class="lrow"><div class="grow"><div>${esc(t.name)}</div><div class="small muted">Expected ${t.pred_roi}× · actual ${t.actual_roi}×</div></div><span class="pill ${t.actual_roi>=t.pred_roi?'p-GO':'p-CONDITIONAL'}">${t.actual_roi>=t.pred_roi?'Beat forecast':'Below forecast'}</span></div>`).join(''):'<p class="muted small">No similar past promotions found.</p>';}
+let PIN=null;const scen=()=>({s:CUR.segment,k:CUR.sku,c:CUR.city,o:CUR.offer_idx,ch:CUR.channel,cap:CUR.cap,w:CUR.window});
+$('#panel').addEventListener('click',e=>{const p=e.target.closest('[data-pin]');if(!p)return;if(p.dataset.pin==='set'){const o=$('#s-offer'),g=$('#s-city');PIN={key:JSON.stringify(scen()),r:CUR.last,label:`${o.options[o.selectedIndex].text}, ${g.options[g.selectedIndex].text}`};toast('Pinned. Now change the discount, city or group to compare')}else PIN=null;renderForge(CUR.last)});
 $('#panel').onclick=async e=>{const b=e.target.closest('#submit');if(!b||b.disabled)return;b.disabled=true;try{const c=await api('/api/campaigns',{...CUR,last:undefined});toast(`Promotion ${c.id} sent for sign-off`);go('approve')}catch(e){$('#send-msg').textContent=errMsg(e)}finally{b.disabled=vk(CUR?.last?.verdict)==='BLOCK'}};
 
 /* 5 blocked */
@@ -532,8 +563,16 @@ async function loadMap(){const ok=latest('map');let d;try{d=await api('/api/mism
  d.rows=d.rows||[];d.transfers=d.transfers||[];d.cities=d.cities||[];$('#map-i').textContent=d.insight||'';
  const P=(lat,lon)=>[(lon-68)/(97-68)*380+30,(36-lat)/(36-7)*420+25],A=css('--accent'),R=css('--bad'),B=css('--info');let s='';
  d.transfers.forEach(t=>{const [a,b]=P(...t.from_ll),[c,e]=P(...t.to_ll);s+=`<path d="M${a},${b} Q${(a+c)/2+30},${(b+e)/2-40} ${c},${e}" stroke="${A}" stroke-width="2" fill="none" stroke-dasharray="5 4" opacity=".85"><animate attributeName="stroke-dashoffset" from="18" to="0" dur="1.2s" repeatCount="indefinite"/></path>`});
- d.cities.forEach(c=>{const [x,y]=P(c.lat,c.lon);s+=`<g><title>${esc(c.city)}: ${c.short} products running short, ${c.excess} with extra stock (${c.stores} stores)</title>${c.short>0&&!RM?`<circle cx="${x}" cy="${y}" r="${5+Math.sqrt(c.short)*3.2}" fill="none" stroke="${R}" stroke-width="1.5"><animate attributeName="r" from="${5+Math.sqrt(c.short)*3.2}" to="${14+Math.sqrt(c.short)*3.2}" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" from=".7" to="0" dur="2s" repeatCount="indefinite"/></circle>`:''}<circle cx="${x}" cy="${y}" r="${5+Math.sqrt(c.short)*3.2}" fill="${R}1f" stroke="${R}" stroke-width="1.5"/><circle cx="${x+4}" cy="${y+4}" r="${3+Math.sqrt(c.excess)*2.6}" fill="${B}1f" stroke="${B}"/><circle cx="${x}" cy="${y}" r="3" fill="${css('--ink')}"/><text x="${x+12}" y="${y-6}" font-weight="600">${esc(c.city)}</text><text x="${x+12}" y="${y+7}" style="font-size:10px;fill:${css('--muted')}">${c.short} short · ${c.excess} extra</text></g>`});
- $('#map').innerHTML=s;
+ d.cities.forEach(c=>{const [x,y]=P(c.lat,c.lon);s+=`<g class="city" data-city="${esc(c.city)}" tabindex="0" role="button" aria-label="${esc(c.city)} details"><title>${esc(c.city)}: ${c.short} products running short, ${c.excess} with extra stock (${c.stores} stores)</title>${c.short>0&&!RM?`<circle cx="${x}" cy="${y}" r="${5+Math.sqrt(c.short)*3.2}" fill="none" stroke="${R}" stroke-width="1.5"><animate attributeName="r" from="${5+Math.sqrt(c.short)*3.2}" to="${14+Math.sqrt(c.short)*3.2}" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" from=".7" to="0" dur="2s" repeatCount="indefinite"/></circle>`:''}<circle cx="${x}" cy="${y}" r="${5+Math.sqrt(c.short)*3.2}" fill="${R}1f" stroke="${R}" stroke-width="1.5"/><circle cx="${x+4}" cy="${y+4}" r="${3+Math.sqrt(c.excess)*2.6}" fill="${B}1f" stroke="${B}"/><circle class="dot" cx="${x}" cy="${y}" r="3" fill="${css('--ink')}"/><text x="${x+12}" y="${y-6}" font-weight="600">${esc(c.city)}</text><text x="${x+12}" y="${y+7}" style="font-size:10px;fill:${css('--muted')}">${c.short} short · ${c.excess} extra</text></g>`});
+ $('#map').innerHTML=s;MAPD=d;
+ const pick=name=>{$$('#map g.city').forEach(g=>g.classList.toggle('sel',g.dataset.city===name));const rows=d.rows.filter(r=>r.city_name===name),sh=rows.filter(r=>r.status==='SHORT').sort((a,b)=>a.cover_days-b.cover_days),ex=rows.filter(r=>r.status==='EXCESS').sort((a,b)=>b.cover_days-a.cover_days),c=d.cities.find(x=>x.city===name)||{},inb=d.transfers.filter(t=>t.to===name).length,out=d.transfers.filter(t=>t.from===name).length;
+  $('#cityp').innerHTML=`<div class="cityp"><div class="hd"><b>${esc(name)}</b><button class="btn ghost xs" data-close>Close</button></div><div class="stat3"><div>Stores<b>${num(c.stores)}</b></div><div>Running short<b style="color:var(--bad)">${sh.length}</b></div><div>Surplus<b style="color:var(--info)">${ex.length}</b></div></div>
+  ${sh.slice(0,3).map(r=>`<div class="lrow"><div class="grow"><div>${esc(r.product)}</div><div class="small muted">sells ${r.demand_per_day}/day · ${num(r.stock)} in stock</div></div><span class="days">${fin(r.stock)<=0?'out of stock':r.cover_days<1?'under a day':r.cover_days+' days'}</span></div>`).join('')}
+  ${ex.slice(0,2).map(r=>`<div class="lrow"><div class="grow"><div>${esc(r.product)}</div><div class="small muted">${num(r.stock)} in stock</div></div><span class="qty" style="color:var(--info)">${Math.round(r.cover_days)} days of stock</span></div>`).join('')}
+  <p class="small muted" style="margin:8px 0 0">${inb||out?`${inb} suggested move${inb===1?'':'s'} into ${esc(name)}, ${out} out.`:'No stock moves suggested for this city.'}</p></div>`;
+  $('#cityp [data-close]').onclick=()=>{$('#cityp').innerHTML='';$$('#map g.city').forEach(g=>g.classList.remove('sel'))}};
+ $('#map').onclick=e=>{const g=e.target.closest('g.city');g&&pick(g.dataset.city)};$('#map').onkeydown=e=>{const g=e.target.closest('g.city');if(g&&(e.key==='Enter'||e.key===' ')){e.preventDefault();pick(g.dataset.city)}};
+ const worst=[...d.cities].sort((a,b)=>b.short-a.short)[0];if(worst&&!$('#cityp').innerHTML)pick(worst.city);
  $('#xfer').innerHTML=d.transfers.length?d.transfers.slice(0,8).map(t=>`<div class="lrow"><span class="qty">${num(t.qty)} units</span><div class="grow"><div>${esc(t.product)}</div><div class="route">${esc(t.from)} ${icon('arrow',14)} ${esc(t.to)}</div></div></div>`).join(''):'<p class="muted small">No moves needed.</p>';
  $('#gaps').innerHTML=d.rows.filter(r=>r.status==='SHORT').sort((a,b)=>a.cover_days-b.cover_days).slice(0,6).map(r=>`<div class="lrow"><div class="grow"><div>${esc(r.product)}</div><div class="small muted">${esc(r.city_name)} · sells ${r.demand_per_day}/day · ${num(r.stock)} in stock</div></div><span class="days">${fin(r.stock)<=0?'out of stock':r.cover_days<1?'under a day':r.cover_days+' days'}</span></div>`).join('')||'<p class="muted small">Nothing is about to run out.</p>'}
 
@@ -565,7 +604,10 @@ let BUSY=false;$('#board').onclick=async e=>{const s=e.target.closest('[data-sea
  catch(err){toast(errMsg(err))}finally{BUSY=false;loadBoard()}};
 
 /* 7 past */
-async function loadMem(){let M;try{M=await api('/api/memory')}catch(e){showErr($('#mem-i').parentElement,e,loadMem);return}const m=(M.rows||[]).filter(c=>Number.isFinite(+c.pred_roi)&&Number.isFinite(+c.actual_roi));$('#mem-i').textContent=M.insight||'';
+async function loadMem(){let M;try{M=await api('/api/memory')}catch(e){showErr($('#mem-i').parentElement,e,loadMem);return}const allm=(M.rows||[]).filter(c=>Number.isFinite(+c.pred_roi)&&Number.isFinite(+c.actual_roi)),objs=[...new Set(allm.map(c=>c.objective).filter(Boolean))].sort();if(MEMF&&!objs.includes(MEMF))MEMF='';
+ $('#memf').innerHTML=[['','All'],...objs.map(o=>[o,o.replace(/_/g,' ')])].map(([v,l])=>`<button class="chip ${v===MEMF?'on':''}" data-m="${esc(v)}">${esc(l[0].toUpperCase()+l.slice(1))} <span class="muted small">${v?allm.filter(c=>c.objective===v).length:allm.length}</span></button>`).join('');
+ $('#memf').onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;MEMF=b.dataset.m;loadMem()};
+ const m=allm.filter(c=>!MEMF||c.objective===MEMF);$('#mem-i').textContent=M.insight||'';
  if(!m.length){noData('c-cal','No completed promotions yet.');$('#mem').innerHTML='<tr><td class="muted">No past promotions.</td></tr>';return}
  const xs=m.flatMap(c=>[+c.pred_roi,+c.actual_roi]).sort((a,b)=>a-b),pc=q=>xs[Math.min(xs.length-1,Math.max(0,Math.round(q*(xs.length-1))))],lo=Math.floor(pc(.03)-.5),hi=Math.ceil(pc(.97)+.5),TOL=.5,G=css('--good'),W=css('--warn');
  const hit=m.filter(c=>Math.abs(c.actual_roi-c.pred_roi)<=TOL).length,out=m.filter(c=>c.pred_roi<lo||c.pred_roi>hi||c.actual_roi<lo||c.actual_roi>hi).length;
@@ -588,7 +630,8 @@ async function loadAud(){let d;try{d=await api('/api/audiences')}catch(e){showEr
  $('#segs').innerHTML=d.segments.slice().sort((a,b)=>b.lift-a.lift).map(s=>`<div class="segcard ${s.lift===mx?'best':''}"><div class="hd"><div><b>${esc(s.segment)}</b><div class="small muted">${num(s.size)} customers</div></div>${s.lift===mx&&mx>0?'<span class="pill p-GO">Best response</span>':''}</div>
   <div class="cmp"><div class="r"><span>With offer</span><div class="track"><i style="width:${s.treated/top*100}%;background:var(--accent)"></i></div><b>${(s.treated*100).toFixed(1)}%</b></div><div class="r"><span>Without offer</span><div class="track"><i style="width:${s.control/top*100}%;background:var(--neutral)"></i></div><b>${(s.control*100).toFixed(1)}%</b></div></div>
   <div class="small">${fin(s.lift)>0?`<b style="color:var(--accent)">+${(s.lift*100).toFixed(1)}%</b> more buy with an offer`:'<b>No clear effect</b> from offers'} · <b>${(s.persuadable*100).toFixed(0)}%</b> of the group needs one</div>
-  <div class="row">${(s.top_categories||[]).map(x=>`<span class="tag">Likes ${x.split(' ')[0]}</span>`).join('')}</div></div>`).join('');
+  <div class="row">${(s.top_categories||[]).map(x=>`<span class="tag">Likes ${x.split(' ')[0]}</span>`).join('')}</div><button class="btn ghost sm" style="align-self:flex-start" data-seg="${esc(s.segment)}">Build a promotion for this group ${icon('arrow',14)}</button></div>`).join('');
+ $('#segs').onclick=e=>{const b=e.target.closest('[data-seg]');if(!b)return;const g=b.dataset.seg,best=LAST?.top.find(r=>r.segment===g);if(best)openForge(best);else if(CUR){CUR.segment=g;CUR.last=null;renderSentence();simulate();go('forge')}else go('forge');toast(best?`Loaded the best pick for ${g}`:`Set customer group to ${g}`)};
  const vals=[['Customers we pick (top 30%)',mc.obs_uplift_top30_pts,'var(--accent)'],['Everyone else',mc.obs_uplift_rest_pts,'var(--neutral)'],['If we offered to everyone',mc.obs_uplift_all_pts,'var(--muted)']],vm=Math.max(...vals.map(v=>v[1]),.01);
  stagger($('#segs'));if(!mc.train_rows){$('#model').innerHTML='<p class="muted small">Model details unavailable.</p>';return}
  $('#model').innerHTML=`<p class="small muted" style="margin-top:0">We learned from ${num(mc.train_rows)} past offers: ${num(mc.treated)} people got one, ${num(mc.control)} similar people didn't. Then we checked who bought extra because of the offer.</p>
