@@ -9,13 +9,14 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from . import ai
+from . import db as DB
 from . import engine as E
 
 app = FastAPI(title="Prometheus PromoForge")
 WORLD = E.World()
 E.generate_candidates(WORLD)  # warm cache
 STATIC = Path(__file__).parent / "static"
-CAMPAIGNS: dict[str, dict] = {}
+DB.init()
 LENSES = ("marketing", "merchandising", "store_ops")
 
 
@@ -197,40 +198,57 @@ def create_campaign(s: Sim):
     r = _eval(s)
     if r["verdict"] == "BLOCK":
         raise HTTPException(409, {"msg": "Blocked by guardrails", "blocks": r["blocks"], "fix": r["what_would_change"]})
-    cid = f"PF-{len(CAMPAIGNS) + 101}"
-    CAMPAIGNS[cid] = {"id": cid, "rec": r, "status": "Pending sign-off", "seals": {l: None for l in LENSES}, "log": []}
-    return CAMPAIGNS[cid]
+    cid = DB.next_id()
+    doc = {"id": cid, "rec": r, "status": "Pending sign-off", "seals": {l: None for l in LENSES}, "log": []}
+    return DB.save(doc, "created", r["sentence"])
 
 
 @app.get("/api/campaigns")
 def list_campaigns():
-    return list(CAMPAIGNS.values())
+    return DB.all_campaigns()
+
+
+@app.get("/api/campaigns/{cid}/audit")
+def campaign_audit(cid: str):
+    if not DB.get(cid):
+        raise HTTPException(404, "no campaign")
+    return DB.audit(cid)
+
+
+@app.post("/api/admin/reset-demo")
+def reset_demo():
+    DB.reset()
+    return {"ok": True}
 
 
 @app.post("/api/campaigns/{cid}/seal")
 def seal(cid: str, s: Seal):
-    c = CAMPAIGNS.get(cid)
+    c = DB.get(cid)
     if not c:
         raise HTTPException(404, "no campaign")
+    if s.decision not in ("approve", "reject"):
+        raise HTTPException(400, "decision must be approve or reject")
+    if c["status"] != "Pending sign-off":
+        raise HTTPException(409, f"Campaign is already {c['status'].lower()}")
     if s.lens not in LENSES:
         raise HTTPException(400, "bad lens")
     c["seals"][s.lens] = s.decision
     c["log"].append(f"{s.lens}: {s.decision}" + (f": {s.note}" if s.note else ""))
     vals = list(c["seals"].values())
     c["status"] = "Rejected" if "reject" in vals else "Approved" if all(v == "approve" for v in vals) else "Pending sign-off"
-    return c
+    return DB.save(c, f"{s.lens} {s.decision}", s.note)
 
 
 @app.post("/api/campaigns/{cid}/timewarp")
 def warp(cid: str):
-    c = CAMPAIGNS.get(cid)
+    c = DB.get(cid)
     if not c:
         raise HTTPException(404, "no campaign")
     if c["status"] != "Approved":
         raise HTTPException(409, "Campaign must be approved by all three lenses first")
     c["outcome"] = E.time_warp(WORLD, c["rec"])
     c["status"] = "Completed"
-    return c
+    return DB.save(c, "timewarp", c["outcome"]["lesson"])
 
 
 @app.get("/api/memory")

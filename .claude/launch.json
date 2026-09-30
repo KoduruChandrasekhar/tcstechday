@@ -1,1 +1,4 @@
-{"version":"0.0.1","configurations":[{"name":"promoforge","runtimeExecutable":"python","runtimeArgs":["-m","uvicorn","app.main:app","--app-dir","backend","--port","8765"],"port":8765}]}
+{"version":"0.0.1","configurations":[
+ {"name":"promoforge","runtimeExecutable":"python","runtimeArgs":["-m","uvicorn","app.main:app","--app-dir","backend","--port","8765"],"port":8765},
+ {"name":"frontend","runtimeExecutable":"npm","runtimeArgs":["--prefix","frontend","run","dev"],"port":3000}
+]}

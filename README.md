@@ -13,6 +13,19 @@ python -m uvicorn app.main:app --app-dir backend --port 8765
 
 Open http://localhost:8765
 
+### Next.js frontend (recommended for demos)
+
+With the backend running on port 8765, in a second terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open http://localhost:3000. The Next.js app proxies every `/api/*` call to the backend (set `API_URL` to point elsewhere).
+The original single-file UI is still served at http://localhost:8765.
+
 ## What's inside
 
 | Page | What it shows |
