@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/components/AppState";
+import { Tip } from "@/components/fx";
 import { Answer, BarRow, ErrorBox, Icon, PageHead, Pager, Skeleton } from "@/components/ui";
 import { api, fin, num, specOf, ApiError } from "@/lib/api";
 
@@ -44,7 +45,7 @@ export default function Customers() {
               <div className="r"><span>With offer</span><div className="tr"><i style={{ width: `${(s.treated / top) * 100}%`, background: "var(--accent)" }} /></div><b>{(s.treated * 100).toFixed(1)}%</b></div>
               <div className="r"><span>Without offer</span><div className="tr"><i style={{ width: `${(s.control / top) * 100}%`, background: "var(--neutral)" }} /></div><b>{(s.control * 100).toFixed(1)}%</b></div>
             </div>
-            <div className="small">{s.lift > 0 ? <><b style={{ color: "var(--accent)" }}>+{(s.lift * 100).toFixed(1)}%</b> more buy with an offer</> : <b>No clear effect from offers</b>} · <b>{(s.persuadable * 100).toFixed(0)}%</b> of the group needs one</div>
+            <div className="small">{s.lift > 0 ? <><b style={{ color: "var(--accent)" }}>+{(s.lift * 100).toFixed(1)}%</b> more buy with an offer <Tip k="uplift" /></> : <b>No clear effect from offers</b>} · <b>{(s.persuadable * 100).toFixed(0)}%</b> of the group needs one</div>
             <div className="row">{(s.top_categories || []).map((x) => <span key={x} className="tag">Likes {x.split(" ")[0]}</span>)}</div>
             <button className="btn ghost sm" style={{ alignSelf: "flex-start" }} onClick={() => build(s.segment)}>Build a promotion for this group <Icon n="arrow" s={14} /></button>
           </div>); })}

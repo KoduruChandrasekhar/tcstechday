@@ -39,7 +39,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // saved preferences live outside React; read them after mount so server and client HTML match
     Promise.resolve().then(() => {
-      setTheme((ls.get("theme") as "light" | "dark") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+      setTheme((ls.get("theme2") as "light" | "dark") || "light");
       setTips(ls.get("tips") !== "0");
     });
     api<Meta>("/api/meta").then((m) => { setMeta(m); if (!m.windows.diwali) setWinState(Object.keys(m.windows)[0]); })
@@ -66,7 +66,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const setWin = (w: string) => { setWinState(w); setCur(null); };
   const value: State = {
     meta, metaError, win, setWin, objective, setObjective, city, setCity, cat, setCat, recs, recsError, reloadRecs, cur, setCur,
-    theme, toggleTheme: () => setTheme((t) => { const n = t === "dark" ? "light" : "dark"; ls.set("theme", n); return n; }),
+    theme, toggleTheme: () => setTheme((t) => { const n = t === "dark" ? "light" : "dark"; ls.set("theme2", n); return n; }),
     tips, toggleTips: () => setTips((t) => { ls.set("tips", t ? "0" : "1"); return !t; }), toast,
   };
   return (

@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useApp } from "@/components/AppState";
+import { Confetti } from "@/components/fx";
 import { ErrorBox, Icon, PageHead, Pager } from "@/components/ui";
 import { api, inr, num, type Rec, ApiError } from "@/lib/api";
 
@@ -22,13 +23,14 @@ const Vs = ({ label, a, b, f, bad }: { label: string; a: number; b: number; f: (
 
 export default function SignOff() {
   const { toast } = useApp();
+  const [party, setParty] = useState(0);
   const [cs, setCs] = useState<Campaign[] | null>(null), [err, setErr] = useState(""), [busy, setBusy] = useState(false), [sim, setSim] = useState<{ id: string; day: number } | null>(null);
   const load = useCallback(() => { api<Campaign[]>("/api/campaigns").then((x) => { setCs(x); setErr(""); }).catch((e: ApiError) => setErr(e.message)); }, []);
   useEffect(load, [load]);
 
   const seal = async (id: string, lens: string, decision: string) => {
     if (busy) return; setBusy(true);
-    try { await api(`/api/campaigns/${id}/seal`, { lens, decision }); } catch (e) { toast((e as ApiError).message); }
+    try { const c = await api<Campaign>(`/api/campaigns/${id}/seal`, { lens, decision }); if (c.status === "Approved") { setParty((p) => p + 1); toast("All three teams approved 🎉"); } } catch (e) { toast((e as ApiError).message); }
     setBusy(false); load();
   };
   const warp = async (id: string) => {
@@ -65,7 +67,7 @@ export default function SignOff() {
               </div>))}</div>
             {c.status === "Approved" && (sim?.id === c.id
               ? <div className="sim"><b>Fast-forwarding through the season…</b><div className="small muted">Day {Math.max(1, sim.day)} of 8</div><div className="simdays">{Array.from({ length: 8 }, (_, i) => <i key={i} className={i < sim.day ? "on" : ""} />)}</div><div className="small muted">Customers receive the offer, stores sell, stock moves. Then we compare with the forecast.</div></div>
-              : <div className="sendbar"><div><b>All three teams approved</b><div className="small muted">Fast-forward through the season in our simulated store network to see the real result.</div></div><button className="btn" disabled={busy} onClick={() => warp(c.id)}><Icon n="ff" s={16} /> Fast-forward</button></div>)}
+              : <div className="sendbar celebrate"><div><b>🎉 All three teams approved</b><div className="small muted">Fast-forward through the season in our simulated store network to see the real result.</div></div><button className="btn" disabled={busy} onClick={() => warp(c.id)}><Icon n="ff" s={16} /> Fast-forward</button></div>)}
             {o && <div style={{ marginTop: 18, borderTop: "1px solid var(--border)", paddingTop: 18 }}><h2>What actually happened</h2>
               <div className="vs"><Vs label="Extra units sold" a={o.pred_incr_units} b={o.actual_incr_units} f={num} /><Vs label="Extra profit" a={o.pred_net_gp} b={o.actual_net_gp} f={inr} bad={o.actual_net_gp < 0} />
                 <div className="card"><div className="small muted" style={{ marginBottom: 8 }}>Did we sell out?</div><div style={{ fontSize: "1.5rem", fontWeight: 700, color: o.stocked_out ? "var(--bad)" : "var(--good)" }}>{o.stocked_out ? "Yes" : "No"}</div><div className="small muted">Sales were {Math.abs(o.error_pct)}% {o.error_pct < 0 ? "below" : "above"} forecast</div></div></div>
@@ -73,6 +75,7 @@ export default function SignOff() {
               <Link className="btn ghost sm" href="/results" style={{ marginTop: 12 }}>See past results <Icon n="arrow" s={15} /></Link></div>}
           </div>);
       })}
+      <Confetti fire={party} />
       <Pager step={6} />
     </main>
   );

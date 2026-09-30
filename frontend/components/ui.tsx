@@ -21,6 +21,9 @@ const P: Record<string, string> = {
   chat: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
   sun: "M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4",
   moon: "M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z", logo: "M3 17l6-6 4 4 8-8M15 7h6v6",
+  edit: "M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z", chart: "M3 3v18h18M18 17V9M13 17V5M8 17v-3",
+  search: "M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.35-4.35", help: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01",
+  menu: "M3 6h18M3 12h18M3 18h18", home: "M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10",
 };
 export function Icon({ n, s = 18 }: { n: string; s?: number }) {
   return (
@@ -33,17 +36,21 @@ export function Icon({ n, s = 18 }: { n: string; s?: number }) {
 export const Pill = ({ v }: { v: string }) => <span className={`pill p-${vk(v)}`}>{VERDICT[vk(v)].label}</span>;
 
 export function PageHead({ step, title, lead, tips }: { step: number; title: string; lead: string; tips: [string, string][] }) {
+  const s = STEPS[step - 1];
   return (
-    <>
-      <div className="kicker">Step {step} of 7</div>
-      <h1>{title}</h1>
+    <section className="hero">
+      <div className="hero-bg" aria-hidden><span /><span /></div>
+      <div className="hero-top">
+        <span className="hero-ic"><Icon n={s?.icon || "home"} s={22} /></span>
+        <div><div className="kicker">Step {step} of 7 · {s?.label}</div><h1>{title}</h1></div>
+      </div>
       <p className="lead">{lead}</p>
       <div className="howto">
         {tips.map(([b, t], i) => (
           <div key={i}><span className="num">{i + 1}</span><span><b>{b}</b>{t}</span></div>
         ))}
       </div>
-    </>
+    </section>
   );
 }
 

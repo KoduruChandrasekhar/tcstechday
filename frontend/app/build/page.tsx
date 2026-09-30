@@ -4,7 +4,9 @@ import { useRouter } from "next/navigation";
 import { Bar } from "react-chartjs-2";
 import { useApp } from "@/components/AppState";
 import { cssVar } from "@/components/charts-setup";
+import { Ring, Tip, Tween } from "@/components/fx";
 import { BarRow, ErrorBox, Icon, PageHead, Pager, Pill, TypeIn } from "@/components/ui";
+import { catEmoji } from "@/lib/api";
 import { VERDICT, api, fin, inr, num, vk, type AiResult, type Rec, type Spec, ApiError } from "@/lib/api";
 
 const CHECKS: [string, string][] = [["profit", "Makes money"], ["stock", "Stock will last"], ["uplift", "Customers respond"], ["ops", "Stores can cope"], ["fatigue", "Not over-messaged"]];
@@ -93,7 +95,7 @@ export default function Build() {
                   const v = Math.round(+e.target.value); if (e.target.value && !(v > 0)) { toast("Limit must be a positive number, so it was removed"); set({ cap: null }); } else set({ cap: v > 0 ? v : null });
                 }} /><span className="hint">Optional</span></div>
             </div>
-            <div className="summary"><b>In short:</b> {offerName} on <b>{productName}</b> for {cur.segment} in {cityName}, via {cur.channel}{cur.cap ? `, up to ${num(cur.cap)} units` : ""}.</div>
+            <div className="summary"><span className="prod-tile sm" aria-hidden>{catEmoji(meta.products.find((p) => p.sku === cur.sku)?.cat)}</span><span><b>In short:</b> {offerName} on <b>{productName}</b> for {cur.segment} in {cityName}, via {cur.channel}{cur.cap ? `, up to ${num(cur.cap)} units` : ""}.</span></div>
           </div>
 
           <div className="card why"><h2>Why this decision</h2>
@@ -117,13 +119,14 @@ export default function Build() {
 
         <aside key={flash} className={`card panel ${flash ? "flash" : ""}`} style={{ ["--c" as string]: V.color, opacity: busy ? 0.55 : 1 }}>
           {err ? <div style={{ padding: 20 }}><ErrorBox msg={err} retry={() => run(cur)} /></div> : !r ? <div style={{ padding: 22 }}><div className="skel" /></div> : <>
-            <div className="top"><div className="lbl" style={{ color: "var(--muted)" }}>Our decision</div><div className="v">{V.label}</div><p>{blocked && r.blocks[0] ? r.blocks[0] + "." : V.text}</p>
-              <div className="meterrow"><span>Confidence</span><b>{rd}/100</b></div><div className="meter"><i style={{ width: `${Math.max(2, rd)}%`, background: "var(--c)" }} /></div></div>
+            <div className="top"><div><div className="lbl" style={{ color: "var(--muted)" }}>Our decision</div><div className="v">{V.label}</div></div>
+              <div style={{ textAlign: "center" }}><Ring value={rd} color={V.color} /><div className="small muted">Confidence <Tip k="confidence" /></div></div>
+              <p>{blocked && r.blocks[0] ? r.blocks[0] + "." : V.text}</p></div>
             <div className="sec"><h4>Expected result</h4>
-              <div className="kv"><span>Extra profit</span><b style={{ color: r.net_gp >= 0 ? "var(--good)" : "var(--bad)" }}>{r.fmt?.net_gp ?? inr(r.net_gp)}{delta(r.net_gp, base?.net_gp, inr, "up")}</b></div>
-              <div className="kv"><span>Extra units sold</span><b>{num(r.incr_units)}{delta(r.incr_units, base?.incr_units, num, "up")}</b></div>
-              <div className="kv"><span>Chance of selling out</span><b style={{ color: r.p_stockout > 0.2 ? "var(--bad)" : undefined }}>{(r.p_stockout * 100).toFixed(0)}%{delta(r.p_stockout * 100, base ? base.p_stockout * 100 : undefined, (v) => `${v.toFixed(0)} pts`, "down")}</b></div>
-              <div className="kv"><span>Discount wasted on people who&apos;d buy anyway</span><b>{r.fmt?.leakage ?? inr(r.leakage)}{delta(r.leakage, base?.leakage, inr, "down")}</b></div>
+              <div className="kv"><span>Extra profit <Tip k="profit" /></span><b style={{ color: r.net_gp >= 0 ? "var(--good)" : "var(--bad)" }}><Tween value={r.net_gp} fmt="inr" />{delta(r.net_gp, base?.net_gp, inr, "up")}</b></div>
+              <div className="kv"><span>Extra units sold <Tip k="units" /></span><b><Tween value={r.incr_units} />{delta(r.incr_units, base?.incr_units, num, "up")}</b></div>
+              <div className="kv"><span>Chance of selling out <Tip k="stockout" /></span><b style={{ color: r.p_stockout > 0.2 ? "var(--bad)" : undefined }}><Tween value={r.p_stockout * 100} fmt="pct0" />{delta(r.p_stockout * 100, base ? base.p_stockout * 100 : undefined, (v) => `${v.toFixed(0)} pts`, "down")}</b></div>
+              <div className="kv"><span>Wasted discount <Tip k="wasted" /></span><b><Tween value={r.leakage} fmt="inr" />{delta(r.leakage, base?.leakage, inr, "down")}</b></div>
               <div className="pinbar">{pin ? <><span>{base ? <>Compared with pinned: <b style={{ color: "var(--ink)" }}>{pin.label}</b></> : "This is your pinned version. Change something to compare."}</span><button className="btn ghost xs" onClick={() => setPin(null)}>Unpin</button></>
                 : <><span>Pin this version, then change things to compare.</span><button className="btn ghost xs" onClick={() => { setPin({ key, r, label: `${offerName}, ${cityName}` }); toast("Pinned. Now change the discount, city or group to compare"); }}>📌 Pin</button></>}</div>
             </div>
@@ -137,7 +140,7 @@ export default function Build() {
 
       <div className="card ai section">
         <div className="row between"><div><h2>Campaign kit</h2><p className="sub" style={{ margin: 0 }}>Manager summary, customer messages (incl. Hindi) and staff talking points, written by AI using only the engine&apos;s numbers.</p></div>
-          <button className="btn sm" onClick={writeKit} disabled={aiBusy || !r}><Icon n="spark" s={16} />{aiBusy ? "Writing…" : brief ? "Rewrite" : "Write campaign kit"}</button></div>
+          <button className="btn sm" onClick={writeKit} disabled={aiBusy || !r}><Icon n="edit" s={16} />{aiBusy ? "Writing…" : brief ? "Rewrite" : "Write campaign kit"}</button></div>
         {brief && <div className="ai-out">
           <div><div className="lbl">For the manager</div><p><TypeIn text={String(brief.summary || "")} /></p></div>
           <div><div className="lbl">Customer message</div>

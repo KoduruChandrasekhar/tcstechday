@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/components/AppState";
 import { ErrorBox, Icon, PageHead, Pager, Pill, Skeleton, TypeIn } from "@/components/ui";
+import { catEmoji } from "@/lib/api";
 import { api, specOf, type AiResult, type Rec, ApiError } from "@/lib/api";
 
 const RULES: Record<string, (v: number) => string> = {
@@ -19,7 +20,7 @@ function Case({ r, i }: { r: Rec; i: number }) {
   return (
     <div className="bcard rise" style={{ animationDelay: `${i * 45}ms` }}>
       <div className="row between"><span className="offer">{r.offer}</span><Pill v="BLOCK" /></div>
-      <div className="prod">{r.product}</div>
+      <div className="prod-row"><span className="prod-tile" aria-hidden>{catEmoji(r.category)}</span><div className="prod">{r.product}</div></div>
       <div className="meta"><span><Icon n="users" s={15} />{r.segment}</span><span><Icon n="pin" s={15} />{r.city_name}</span></div>
       {r.blocks?.map((b, j) => <div key={j} className="box bad"><Icon n="x" s={16} /><span>{b}</span></div>)}
       {r.what_would_change?.slice(0, 2).map((f, j) => <div key={j} className="box fix"><Icon n="wrench" s={16} /><span>{f}</span></div>)}
@@ -29,7 +30,7 @@ function Case({ r, i }: { r: Rec; i: number }) {
       {err && <p className="ai-note">{err}</p>}
       <div className="row" style={{ marginTop: "auto" }}>
         <button className="btn ghost sm" onClick={() => { setCur(specOf(r, win)); router.push("/build"); }}>Try the fix <Icon n="arrow" s={15} /></button>
-        <button className="btn ghost sm" onClick={explain} disabled={busy}><Icon n="spark" s={15} />{busy ? "Writing…" : "Explain & rescue"}</button>
+        <button className="btn ghost sm" onClick={explain} disabled={busy}><Icon n="edit" s={15} />{busy ? "Writing…" : "Explain & rescue"}</button>
       </div>
     </div>
   );

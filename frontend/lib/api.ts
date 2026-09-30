@@ -89,3 +89,8 @@ export const vk = (v?: string) => {
   const k = String(v || "HOLD").split(" ")[0];
   return VERDICT[k] ? k : "HOLD";
 };
+
+const CAT_EMOJI: Record<string, string> = { TV: "📺", AC: "❄️", REF: "🧊", WM: "🧺", AUD: "🎧", LAP: "💻", KIT: "🍳", TAB: "📱", PHN: "📱", ACC: "🎒", GAM: "🎮", WEA: "⌚" };
+export const catEmoji = (cat?: string) => CAT_EMOJI[String(cat || "").toUpperCase()] || "🛍️";
+const WIN_EMOJI: Record<string, string> = { navratri: "🪔", diwali: "🪔", xmas: "🎄", rds: "🇮🇳" };
+export const winEmoji = (k: string) => WIN_EMOJI[k] || "🎉";

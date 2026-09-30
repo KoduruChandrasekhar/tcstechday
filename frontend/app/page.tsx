@@ -1,8 +1,11 @@
 "use client";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AnimatePresence, motion } from "motion/react";
 import { useApp } from "@/components/AppState";
 import { Answer, BarRow, CountUp, ErrorBox, Icon, PageHead, Pager, Pill, Skeleton, TypeIn } from "@/components/ui";
+import { Funnel, Tip } from "@/components/fx";
+import { catEmoji } from "@/lib/api";
 import { api, fin, inr, num, specOf, type AiResult, type Rec, ApiError } from "@/lib/api";
 
 const GOALS = [["profit", "Most profit"], ["growth", "More sales"], ["clear", "Clear old stock"], ["retain", "Win back customers"]];
@@ -58,19 +61,17 @@ export default function TopPicks() {
       </div>
 
       {recsError && <ErrorBox msg={recsError} retry={reloadRecs} />}
-      <Answer icon="spark">{recs ? recs.insight || "No results for this filter." : <span className="skel" style={{ display: "block", width: "70%" }} />}</Answer>
+      <Answer icon="bulb">{recs ? recs.insight || "No results for this filter." : <span className="skel" style={{ display: "block", width: "70%" }} />}</Answer>
 
-      {k && (
-        <div className="pipe">
-          {[[k.candidates, "promotion ideas checked", 100], [safe, "are safe to run", (safe / Math.max(k.candidates, 1)) * 100], [recs!.top.length, "picked for you", Math.max(2, (recs!.top.length / Math.max(k.candidates, 1)) * 100)]].map(([v, l, p], i) => (
-            <div key={i} className="rise" style={{ animationDelay: `${i * 60}ms` }}><div className="v"><CountUp to={v as number} /></div><div className="l">{l}</div><div className="meter"><i style={{ width: `${p}%` }} /></div></div>
-          ))}
-        </div>
-      )}
+      {k && <Funnel stages={[
+        { v: k.candidates, label: "Promotion ideas checked", tip: "checked", tone: "linear-gradient(90deg,#a1a1aa,#71717a)" },
+        { v: safe, label: "Safe to run", tip: "safe" },
+        { v: recs!.top.length, label: "Picked for you", tip: "picked", tone: "linear-gradient(90deg,var(--good),#16a34a)" },
+      ]} />}
 
       <div className="card ai">
         <div className="row between"><div><h2>Morning briefing</h2><p className="sub" style={{ margin: 0 }}>A plain-English summary of these results, written by AI from the engine&apos;s numbers.</p></div>
-          <button className="btn sm" onClick={briefing} disabled={aiBusy || !recs}><Icon n="spark" s={16} />{aiBusy ? "Writing…" : ai ? "Rewrite" : "Write my briefing"}</button></div>
+          <button className="btn sm" onClick={briefing} disabled={aiBusy || !recs}><Icon n="edit" s={16} />{aiBusy ? "Writing…" : ai ? "Rewrite" : "Write my briefing"}</button></div>
         {aiErr && <p className="ai-note">{aiErr}</p>}
         {ai && (
           <div className="ai-out">
@@ -94,17 +95,21 @@ export default function TopPicks() {
         </div>
         <div className="pcards">
           {!recs && !recsError && <Skeleton />}
+          <AnimatePresence mode="popLayout">
           {recs && shown.map((r, i) => (
-            <button key={r.id} className="pcard rise" style={{ animationDelay: `${i * 55}ms` }} onClick={() => open(r)}>
+            <motion.button key={r.id} layout className="pcard" onClick={() => open(r)}
+              initial={{ opacity: 0, y: 12, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ layout: { type: "spring", stiffness: 380, damping: 32 }, delay: Math.min(i, 8) * 0.04, duration: 0.3 }}>
               <div className="row between"><span className="rank">#{r._rank}</span><Pill v={r.verdict} /></div>
-              <div className="prod">{r.product}</div><span className="offer">{r.offer}</span>
+              <div className="prod-row"><span className="prod-tile" aria-hidden>{catEmoji(r.category)}</span><div><div className="prod">{r.product}</div><span className="offer">{r.offer}</span></div></div>
               <div className="meta"><span><Icon n="users" s={15} />{r.segment}</span><span><Icon n="pin" s={15} />{r.city_name}</span></div>
               <div className="foot">
-                <div><div className="money-l">Extra profit</div><div className="money" style={{ color: r.net_gp < 0 ? "var(--bad)" : undefined }}><CountUp to={r.net_gp} fmt="inr" /></div></div>
-                <div className="conf"><div className="money-l">Confidence {Math.round(r.readiness)}</div><div className="track"><i style={{ width: `${r.readiness}%` }} /></div></div>
+                <div><div className="money-l">Extra profit <Tip k="profit" /></div><div className="money" style={{ color: r.net_gp < 0 ? "var(--bad)" : undefined }}><CountUp to={r.net_gp} fmt="inr" /></div></div>
+                <div className="conf"><div className="money-l">Confidence {Math.round(r.readiness)} <Tip k="confidence" /></div><div className="track"><i style={{ width: `${r.readiness}%` }} /></div></div>
               </div>
-            </button>
+            </motion.button>
           ))}
+          </AnimatePresence>
           {recs && !shown.length && <div className="card empty" style={{ gridColumn: "1/-1" }}><b>{q ? `No picks match “${q}”` : "No safe promotions for this filter"}</b>{q ? "Try a product, city or group name." : "Try another goal or city, or see what was blocked."}</div>}
         </div>
       </div>
