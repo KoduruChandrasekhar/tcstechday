@@ -73,21 +73,21 @@ def recommendations(objective: str = "profit", window: str = E.DEFAULT_WINDOW, c
     reasons = {}
     for r in blocked:
         for b in r["blocks"]:
-            k = "Stock-out risk" if "stock-out" in b else "Margin floor" if "margin" in b else "k-anonymity" if "anonymity" in b else "Other"
+            k = "Selling out" if "stock-out" in b else "Too little profit" if "margin" in b else "Customer group too small" if "anonymity" in b else "Other"
             reasons[k] = reasons.get(k, 0) + 1
     main_reason = max(reasons, key=reasons.get) if reasons else "n/a"
-    insight = (f"Top {len(top)} plans add {E.inr(tot_gp)} net profit for {E.WINDOWS[window][0]}; {len(blocked)} candidates "
-               f"blocked by guardrails, mostly for {main_reason.lower()}.") if top else "No feasible promotions for this filter."
+    insight = (f"Our top {len(top)} promotions add {E.inr(tot_gp)} extra profit this {E.WINDOWS[window][0]}. We stopped {len(blocked)} others, "
+               f"mostly because of {main_reason.lower()}.") if top else "No safe promotions for this filter."
     by_cat = {}
     for r in go:
         by_cat[r["category"]] = by_cat.get(r["category"], 0) + r["net_gp"]
     top_cat = max(by_cat, key=by_cat.get) if by_cat else None
     n_go = counts["GO"] + counts["CONDITIONAL GO"]
     insights = {
-        "verdict": f"{n_go:,} of {len(recs):,} candidates ({n_go / max(len(recs), 1):.0%}) are safe to run; {counts['BLOCK']:,} are blocked outright.",
-        "block": (f"{main_reason} is the top reason ({reasons.get(main_reason, 0):,} of {len(blocked):,} blocks)." if blocked else "Nothing blocked for this filter."),
-        "cat": (f"{top_cat} leads with {E.inr(by_cat[top_cat])} net profit across runnable plans ({by_cat[top_cat] / max(sum(by_cat.values()), 1):.0%} of total)." if top_cat else "No runnable plans."),
-        "funnel": f"{len(recs):,} evaluated → {n_go:,} pass guardrails → top {len(top)} recommended.",
+        "verdict": f"{n_go:,} of {len(recs):,} ideas ({n_go / max(len(recs), 1):.0%}) are safe to run; {counts['BLOCK']:,} are blocked.",
+        "block": (f"Most common problem: {main_reason.lower()} ({reasons.get(main_reason, 0):,} of {len(blocked):,})." if blocked else "Nothing blocked for this filter."),
+        "cat": (f"{top_cat} leads with {E.inr(by_cat[top_cat])} extra profit ({by_cat[top_cat] / max(sum(by_cat.values()), 1):.0%} of total)." if top_cat else "No runnable plans."),
+        "funnel": f"{len(recs):,} checked → {n_go:,} safe → top {len(top)} picked.",
     }
     return {"insights": insights, "kpis": {"candidates": len(recs), "net_gp_top": E.inr(tot_gp), "counts": counts,
                      "avg_readiness": round(sum(r["readiness"] for r in top) / max(len(top), 1), 1),
@@ -100,16 +100,16 @@ def opportunities(window):
     rows, transfers = E.mismatch(WORLD, window)
     ops = []
     for r in sorted([r for r in rows if r["status"] == "EXCESS"], key=lambda r: -r["cover_days"])[:3]:
-        ops.append({"type": "Excess stock", "text": f"{r['product']} in {r['city_name']}: {r['cover_days']:.0f} days of cover. Clearance candidate."})
+        ops.append({"type": "Too much stock", "text": f"{r['product']} in {r['city_name']}: {r['cover_days']:.0f} days of stock. Good candidate for a clearance offer."})
     for r in sorted([r for r in rows if r["demand_per_day"] > 0.1 * E.SCALE], key=lambda r: r["cover_days"])[:3]:
-        ops.append({"type": "Stock-out risk", "text": f"{r['product']} in {r['city_name']}: {r['cover_days']:.1f} days of cover. Don't promote; replenish first."})
+        ops.append({"type": "Running out", "text": f"{r['product']} in {r['city_name']}: {r['cover_days']:.1f} days of stock left. Restock before promoting."})
     for (c, cat), v in sorted(WORLD.intent.items(), key=lambda kv: -kv[1])[:3]:
-        ops.append({"type": "Demand surge", "text": f"Search intent for {cat} in {WORLD.cities[c]['city']} up {v - 1:.0%} (14d vs prior 60d)"})
+        ops.append({"type": "Rising interest", "text": f"Online searches for {cat} in {WORLD.cities[c]['city']} up {v - 1:.0%} in the last 2 weeks"})
     _, ws, we = E.WINDOWS[window]
     ev = WORLD.events[(WORLD.events.start <= we) & (WORLD.events.end >= ws)]
     for e in ev.itertuples():
-        ops.append({"type": "Festival", "text": f"{e.name} ({e.start:%d %b}–{e.end:%d %b}) overlaps this window"})
-    ops.append({"type": "At-risk customers", "text": f"{WORLD.seg_size.get('At-Risk Lapsers', 0) * E.SCALE:,} contactable lapsing customers: retention window"})
+        ops.append({"type": "Festival", "text": f"{e.name} ({e.start:%d %b}–{e.end:%d %b}) falls in this period"})
+    ops.append({"type": "Lapsing customers", "text": f"{WORLD.seg_size.get('At-Risk Lapsers', 0) * E.SCALE:,} customers haven't bought in a while: good time to win them back"})
     return ops
 
 
@@ -130,15 +130,15 @@ def simulate(s: Sim):
     fr_best = max(fr, key=lambda x: x["net_gp"])
     u = hist.units.fillna(0)
     r["insights"] = {
-        "frontier": f"Highest-profit offer is {fr_best['offer']} ({E.inr(fr_best['net_gp'])}); deeper discounts buy units but erode margin.",
-        "history": (f"Last 8 weeks averaged {u.tail(8).mean():,.0f} units/week vs {u.mean():,.0f} over the year ({u.tail(8).mean() / max(u.mean(), 1e-9) - 1:+.0%})." if len(u) else "No history for this city and category."),
-        "waterfall": f"Of {E.inr(r['incr_gp'])} incremental profit, {E.inr(r['leakage'])} leaks to customers who'd buy anyway; {E.inr(r['net_gp'])} is kept.",
-        "burn": (f"Runs out on day {r['stockout_day']}." if r["stockout_day"] else "Stock holds for the full window.") + f" Opening stock {r['stock']:,.0f}; {len(r['inbound'])} inbound PO(s).",
+        "frontier": f"Highest-profit offer is {fr_best['offer']} ({E.inr(fr_best['net_gp'])}); bigger discounts sell more but earn less.",
+        "history": (f"Last 8 weeks averaged {u.tail(8).mean():,.0f} units a week vs {u.mean():,.0f} over the year ({u.tail(8).mean() / max(u.mean(), 1e-9) - 1:+.0%})." if len(u) else "No history for this city and category."),
+        "waterfall": f"Of {E.inr(r['incr_gp'])} profit from extra sales, {E.inr(r['leakage'])} goes as discount to people who'd buy anyway; we keep {E.inr(r['net_gp'])}.",
+        "burn": (f"Runs out on day {r['stockout_day']}." if r["stockout_day"] else "Stock lasts the whole promotion.") + f" Starting stock {r['stock']:,.0f} units; {len(r['inbound'])} delivery(ies) on the way.",
     }
     r["twins"] = [{"name": t.name, "pred_roi": round(t.pred_roi, 2), "actual_roi": round(t.actual_roi, 2),
                    "stockouts": int(t.oos_store_days_during), "disc": t.discount_pct} for t in m.nsmallest(3, "d").itertuples()]
     avg_a = sum(t["actual_roi"] for t in r["twins"]) / max(len(r["twins"]), 1)
-    r["insights"]["twins"] = f"The 3 most similar past campaigns returned {avg_a:.2f}× on average vs {r['roi']}× predicted here."
+    r["insights"]["twins"] = f"The 3 most similar past promotions returned {avg_a:.2f}× on average; we expect {r['roi']}× here."
     return r
 
 
@@ -149,7 +149,7 @@ def mismatch_api(window: str = E.DEFAULT_WINDOW):
                "short": sum(r["city"] == c and r["status"] == "SHORT" for r in rows),
                "excess": sum(r["city"] == c and r["status"] == "EXCESS" for r in rows)} for c, v in WORLD.cities.items()]
     return {"rows": rows, "transfers": transfers, "cities": cities,
-            "insight": f"{len(transfers)} stock transfers would unlock promotions in short cities without new purchase orders."}
+            "insight": f"Moving stock {len(transfers)} times between cities lets us run promotions where we're short, without ordering more."}
 
 
 @app.get("/api/audiences")
@@ -163,7 +163,7 @@ def audiences():
                     "treated": u.get("treated", 0), "control": u.get("control", 0), "lift": u.get("lift", 0),
                     "top_categories": [f"{c} ×{v:.2f}" for c, v in top]})
     best = max(out, key=lambda x: x["lift"]) if out else None
-    ins = f"{best['segment']} respond most to offers (+{best['lift'] * 100:.2f} pts conversion vs holdout)." if best else ""
+    ins = f"{best['segment']} respond best to offers: {best['lift'] * 100:.1f}% more of them buy when offered." if best else ""
     return {"segments": out, "model": WORLD.model_card, "dnc": WORLD.dnc * E.SCALE, "chart_insight": ins}
 
 
@@ -216,7 +216,7 @@ def memory():
              "leakage_pct": round(r.leak * 100), "gp": E.inr(r.gross_profit)} for r in m.itertuples()]
     c = WORLD.calib
     return {"rows": rows, "calibration": c,
-            "insight": f"{c['n']} completed campaigns. Leave-one-out ROI forecast: mean abs. error {c['mae']}, bias {c['bias']}. Time Warp outcomes use this error band."}
+            "insight": f"Across {c['n']} past promotions, our forecast was off by {c['mae']}× on average. We use this to keep future forecasts honest."}
 
 
 app.mount("/static", StaticFiles(directory=STATIC), name="static")

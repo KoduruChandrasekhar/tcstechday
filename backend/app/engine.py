@@ -377,39 +377,39 @@ def evaluate(w: World, seg: str, sku: str, city: str, offer_idx: int, channel: s
 
     g, risks, blocks, drivers = GUARDRAILS, [], [], []
     if gp_margin < g["min_gp_margin"]:
-        blocks.append(f"Post-discount margin {gp_margin:.1%} is below the {g['min_gp_margin']:.0%} floor")
+        blocks.append(f"Too little profit: margin after discount is {gp_margin:.1%}, below our {g['min_gp_margin']:.0%} minimum")
     if p_stockout > g["max_stockout_prob"] and not cap:
-        blocks.append(f"{p_stockout:.0%} stock-out probability in {C['city']}: {avail:.0f} units projected vs ~{total_need:.0f} needed")
+        blocks.append(f"{p_stockout:.0%} chance of a stock-out in {C['city']}: only {avail:.0f} units available vs ~{total_need:.0f} needed")
     elif p_stockout > 0.15:
-        risks.append(f"Stock-out risk {p_stockout:.0%}" + (f", runs out on day {stockout_day}" if stockout_day else ""))
+        risks.append(f"{p_stockout:.0%} chance of a stock-out" + (f", runs out on day {stockout_day}" if stockout_day else ""))
     if audience < g["min_segment_size"]:
-        blocks.append(f"Only {audience} persuadable sample customers: below k-anonymity minimum {g['min_segment_size']}")
+        blocks.append(f"Customer group too small to target privately ({audience} customers, minimum {g['min_segment_size']}; anonymity rule)")
     if cap_load > g["max_capacity_load"]:
-        risks.append(f"Installation slots overloaded ({cap_load:.0%} of free capacity)")
+        risks.append(f"Not enough installation slots ({cap_load:.0%} of free capacity needed)")
     if leak_share > g["max_leakage_share"]:
         risks.append(f"{leak_share:.0%} of discount goes to customers who'd buy anyway")
     if fatigue >= g["max_fatigue"]:
-        risks.append(f"Segment averages {fatigue:.1f} promos in the last 60 days (fatigue)")
+        risks.append(f"These customers already got {fatigue:.1f} promotions in the last 60 days")
     if SU["lift"] <= 0:
-        risks.append("Historical holdouts show no incremental response for this segment")
+        risks.append("In past promotions, this group bought the same with or without an offer")
     if net_gp < 0:
-        risks.append("Negative incremental profit after leakage and costs")
+        risks.append("Loses money after discounts and costs")
 
     if aff >= 1.2:
-        drivers.append(f"{seg} over-index on {P['cat_name']} (affinity ×{aff:.2f} from purchase history)")
+        drivers.append(f"{seg} buy {P['cat_name']} more than average ({aff:.2f}× based on past purchases)")
     if U["n"]:
-        drivers.append(f"Uplift model targets {U['n'] * SCALE:,} persuadables of {U['n_all'] * SCALE:,} "
-                       f"(predicted {U['treated']:.1%} with offer vs {U['control']:.1%} without)")
+        drivers.append(f"{U['n'] * SCALE:,} of {U['n_all'] * SCALE:,} customers are likely to respond "
+                       f"({U['treated']:.1%} buy with the offer vs {U['control']:.1%} without)")
     if intent >= 1.1:
-        drivers.append(f"Search intent for {P['cat_name']} in {C['city']} up {intent - 1:.0%} (14d vs prior 60d)")
+        drivers.append(f"Online searches for {P['cat_name']} in {C['city']} up {intent - 1:.0%} in the last 2 weeks")
     for n in fest_names[:2]:
-        drivers.append(f"Festival signal: {n}")
+        drivers.append(f"Festival boost: {n}")
     if inv.get("excess", 0) > 0 and cover_days > 45:
-        drivers.append(f"Excess stock: {cover_days:.0f} days of cover, {inv['excess']:.0f} units aged >60d")
+        drivers.append(f"Too much stock: {cover_days:.0f} days worth, {inv['excess']:.0f} units older than 60 days")
     if gp_margin > 0.12:
-        drivers.append(f"Healthy post-discount margin {gp_margin:.1%}")
+        drivers.append(f"Healthy profit margin after discount ({gp_margin:.1%})")
     if not drivers:
-        drivers.append("Baseline demand fit; no strong signal")
+        drivers.append("Normal demand; no special signal")
 
     if blocks:
         verdict = "BLOCK"
@@ -423,19 +423,19 @@ def evaluate(w: World, seg: str, sku: str, city: str, offer_idx: int, channel: s
     change = []
     if p_stockout > 0.15:
         safe_cap = max(0, int(avail - organic - 1.2 * math.sqrt(max(total_need, 0.1))))
-        change.append(f"Cap promo at {safe_cap} units or transfer stock from a surplus city")
+        change.append(f"Limit the offer to {safe_cap} units, or move stock in from a city that has extra")
     if leak_share > 0.45:
-        change.append("Exclude high-propensity 'sure things' or drop to 5% off")
+        change.append("Leave out customers who'd buy anyway, or drop to 5% off")
     if gp_margin < 0.06:
-        change.append("Swap % discount for free installation / flat-off to protect margin")
+        change.append("Offer free installation or a flat amount off instead of a % discount")
     if cap_load > 0.9:
-        change.append("Stagger delivery windows or add installer slots")
+        change.append("Spread out deliveries or add installer slots")
     if fatigue >= g["max_fatigue"]:
-        change.append("Suppress recently-contacted customers or switch to in-store")
+        change.append("Skip customers we contacted recently, or promote in-store instead")
     if audience < g["min_segment_size"]:
-        change.append("Widen to the region or merge with a neighbouring segment")
+        change.append("Target the whole region or combine with a similar customer group")
     if not change:
-        change.append("Already near-optimal; a deeper discount lowers ROI")
+        change.append("Already close to the best option; a bigger discount would earn less")
 
     sd_ = pd.Timestamp(ws).strftime("%d %b"), pd.Timestamp(we).strftime("%d %b")
     sentence = (f"Offer {offer} to {seg} ({audience * SCALE:,}) on {P['name']} in {C['city']} ({C['stores']} stores) "
