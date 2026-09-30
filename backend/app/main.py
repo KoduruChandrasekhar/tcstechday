@@ -43,7 +43,7 @@ def _eval(s: Sim):
 
 @app.get("/")
 def index():
-    return FileResponse(STATIC / "index.html")
+    return FileResponse(STATIC / "index.html", headers={"Cache-Control": "no-cache"})
 
 
 @app.get("/api/meta")
@@ -81,7 +81,15 @@ def recommendations(objective: str = "profit", window: str = E.DEFAULT_WINDOW, c
     by_cat = {}
     for r in go:
         by_cat[r["category"]] = by_cat.get(r["category"], 0) + r["net_gp"]
-    return {"kpis": {"candidates": len(recs), "net_gp_top": E.inr(tot_gp), "counts": counts,
+    top_cat = max(by_cat, key=by_cat.get) if by_cat else None
+    n_go = counts["GO"] + counts["CONDITIONAL GO"]
+    insights = {
+        "verdict": f"{n_go:,} of {len(recs):,} candidates ({n_go / max(len(recs), 1):.0%}) are safe to run; {counts['BLOCK']:,} are blocked outright.",
+        "block": (f"{main_reason} is the top reason ({reasons.get(main_reason, 0):,} of {len(blocked):,} blocks)." if blocked else "Nothing blocked for this filter."),
+        "cat": (f"{top_cat} leads with {E.inr(by_cat[top_cat])} net profit across runnable plans ({by_cat[top_cat] / max(sum(by_cat.values()), 1):.0%} of total)." if top_cat else "No runnable plans."),
+        "funnel": f"{len(recs):,} evaluated → {n_go:,} pass guardrails → top {len(top)} recommended.",
+    }
+    return {"insights": insights, "kpis": {"candidates": len(recs), "net_gp_top": E.inr(tot_gp), "counts": counts,
                      "avg_readiness": round(sum(r["readiness"] for r in top) / max(len(top), 1), 1),
                      "leakage_all": E.inr(sum(r["leakage"] for r in recs))},
             "insight": insight, "top": top, "blocked": blocked[:16], "block_reasons": reasons, "gp_by_cat": by_cat,
@@ -119,8 +127,18 @@ def simulate(s: Sim):
                     "searches": hist.web_searches.fillna(0).tolist()}
     m = WORLD.memory.copy()
     m["d"] = (m.discount_pct - E.OFFERS[s.offer_idx][1]).abs() + (m.pred_roi - r["roi"]).abs() * 0.1
+    fr_best = max(fr, key=lambda x: x["net_gp"])
+    u = hist.units.fillna(0)
+    r["insights"] = {
+        "frontier": f"Highest-profit offer is {fr_best['offer']} ({E.inr(fr_best['net_gp'])}); deeper discounts buy units but erode margin.",
+        "history": (f"Last 8 weeks averaged {u.tail(8).mean():,.0f} units/week vs {u.mean():,.0f} over the year ({u.tail(8).mean() / max(u.mean(), 1e-9) - 1:+.0%})." if len(u) else "No history for this city and category."),
+        "waterfall": f"Of {E.inr(r['incr_gp'])} incremental profit, {E.inr(r['leakage'])} leaks to customers who'd buy anyway; {E.inr(r['net_gp'])} is kept.",
+        "burn": (f"Runs out on day {r['stockout_day']}." if r["stockout_day"] else "Stock holds for the full window.") + f" Opening stock {r['stock']:,.0f}; {len(r['inbound'])} inbound PO(s).",
+    }
     r["twins"] = [{"name": t.name, "pred_roi": round(t.pred_roi, 2), "actual_roi": round(t.actual_roi, 2),
                    "stockouts": int(t.oos_store_days_during), "disc": t.discount_pct} for t in m.nsmallest(3, "d").itertuples()]
+    avg_a = sum(t["actual_roi"] for t in r["twins"]) / max(len(r["twins"]), 1)
+    r["insights"]["twins"] = f"The 3 most similar past campaigns returned {avg_a:.2f}× on average vs {r['roi']}× predicted here."
     return r
 
 
@@ -144,7 +162,9 @@ def audiences():
         out.append({"segment": seg, "size": n * E.SCALE, "persuadable": WORLD.seg_persuadable.get(seg, 0), "fatigue": WORLD.fatigue.get(seg, 0),
                     "treated": u.get("treated", 0), "control": u.get("control", 0), "lift": u.get("lift", 0),
                     "top_categories": [f"{c} ×{v:.2f}" for c, v in top]})
-    return {"segments": out, "model": WORLD.model_card, "dnc": WORLD.dnc * E.SCALE}
+    best = max(out, key=lambda x: x["lift"]) if out else None
+    ins = f"{best['segment']} respond most to offers (+{best['lift'] * 100:.2f} pts conversion vs holdout)." if best else ""
+    return {"segments": out, "model": WORLD.model_card, "dnc": WORLD.dnc * E.SCALE, "chart_insight": ins}
 
 
 @app.post("/api/campaigns")
@@ -194,7 +214,9 @@ def memory():
     rows = [{"id": r.campaign_id, "name": r.name, "objective": r.objective, "start": str(r.start.date()),
              "pred_roi": round(r.pred_roi, 2), "actual_roi": round(r.actual_roi, 2), "stockouts": int(r.oos_store_days_during),
              "leakage_pct": round(r.leak * 100), "gp": E.inr(r.gross_profit)} for r in m.itertuples()]
-    return {"rows": rows, "calibration": WORLD.calib}
+    c = WORLD.calib
+    return {"rows": rows, "calibration": c,
+            "insight": f"{c['n']} completed campaigns. Leave-one-out ROI forecast: mean abs. error {c['mae']}, bias {c['bias']}. Time Warp outcomes use this error band."}
 
 
 app.mount("/static", StaticFiles(directory=STATIC), name="static")

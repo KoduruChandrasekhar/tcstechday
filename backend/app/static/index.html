@@ -1,177 +1,408 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Prometheus PromoForge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
-:root{--bg:#0e0f13;--panel:#171920;--panel2:#1f222b;--line:#2b2f3a;--txt:#e9eaee;--mut:#9aa0ad;--ember:#ff7a3d;--go:#34c38f;--cgo:#e6b54a;--hold:#8a93a6;--block:#ef5a5a;--blue:#5aa2ef}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.45 system-ui,Segoe UI,Roboto,sans-serif}
-header{display:flex;align-items:center;gap:16px;padding:12px 20px;border-bottom:1px solid var(--line);background:#12131a;position:sticky;top:0;z-index:5;flex-wrap:wrap}
-.logo{font-weight:800;font-size:18px}.logo b{color:var(--ember)}.sub{color:var(--mut);font-size:12px}
-nav{display:flex;gap:4px;flex-wrap:wrap}nav button{background:none;border:1px solid transparent;color:var(--mut);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:13px}
-nav button.on{background:var(--panel2);color:var(--txt);border-color:var(--line)}
-main{padding:20px;max-width:1400px;margin:auto}.page{display:none}.page.on{display:block}
-.grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}.g2{grid-template-columns:repeat(auto-fit,minmax(420px,1fr))}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
-.kpi .v{font-size:26px;font-weight:700}.kpi .l{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
-h2{margin:0 0 4px;font-size:20px}h3{margin:0 0 10px;font-size:15px}.insight{color:var(--ember);font-size:13px;margin:4px 0 14px}
-.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700}
-.GO{background:#34c38f22;color:var(--go)}.CONDITIONAL{background:#e6b54a22;color:var(--cgo)}.HOLD{background:#8a93a622;color:var(--hold)}.BLOCK{background:#ef5a5a22;color:var(--block)}
-table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--mut);font-weight:600;font-size:12px}
-tr.click{cursor:pointer}tr.click:hover{background:var(--panel2)}
-.sentence{font-size:19px;line-height:2.1}.sentence select,.sentence input{background:var(--panel2);color:var(--ember);border:1px dashed var(--ember);border-radius:6px;padding:3px 6px;font:inherit;font-weight:700}
-.sentence input{width:90px}
-.bar{height:8px;background:var(--panel2);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ember)}
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.btn{background:var(--ember);color:#111;border:0;padding:8px 14px;border-radius:8px;font-weight:700;cursor:pointer}
-.btn.ghost{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}.btn.red{background:var(--block);color:#fff}.btn.green{background:var(--go);color:#111}
-ul{margin:4px 0;padding-left:18px}li{margin:2px 0}.mut{color:var(--mut)}.big{font-size:40px;font-weight:800}
-.lens{border:1px solid var(--line);border-radius:10px;padding:12px;flex:1;min-width:220px}.seal{font-weight:800;font-size:13px}
-.exhibit{background:#ef5a5a14;border-left:3px solid var(--block);padding:8px 10px;margin:6px 0;border-radius:4px}
-.fix{background:#34c38f14;border-left:3px solid var(--go);padding:8px 10px;margin:6px 0;border-radius:4px}
-select.f{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px}
-.opp{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}.opp .t{min-width:120px;font-size:11px;font-weight:700;color:var(--ember);text-transform:uppercase}
-svg text{fill:var(--txt);font-size:11px}
-@media(max-width:700px){.g2{grid-template-columns:1fr}main{padding:12px}}
+:root{--bg:#0b0c10;--panel:#14161d;--panel2:#1c1f28;--line:#262a35;--txt:#eceef3;--mut:#949aa8;--ember:#ff7a3d;--ember2:#ffb088;--go:#34c38f;--cgo:#e6b54a;--hold:#8a93a6;--block:#ef5a5a;--blue:#5aa2ef;--shadow:0 1px 0 #ffffff08 inset,0 8px 24px #0006;--fs:14px}
+:root[data-theme=light]{--bg:#f5f6f8;--panel:#fff;--panel2:#f0f1f4;--line:#e2e4ea;--txt:#171a21;--mut:#5e6574;--ember:#e35f1f;--ember2:#b64710;--go:#1a9b6c;--cgo:#b7831a;--hold:#6b7385;--block:#d63c3c;--blue:#2f7fd4;--shadow:0 1px 3px #0000000f,0 6px 18px #00000008}
+*{box-sizing:border-box}html{font-size:var(--fs)}
+body{margin:0;background:var(--bg);color:var(--txt);font:1rem/1.5 Inter,system-ui,Segoe UI,Roboto,sans-serif;display:grid;grid-template-columns:268px 1fr;min-height:100vh}
+body.present{--fs:16px}
+/* ---------- story rail ---------- */
+aside{position:sticky;top:0;height:100vh;overflow:auto;background:var(--panel);border-right:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;gap:6px}
+.logo{font-weight:800;font-size:1.25rem;letter-spacing:-.01em;padding:0 8px}.logo b{color:var(--ember)}
+.tag{color:var(--mut);font-size:.78rem;padding:0 8px 12px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.step{display:flex;gap:10px;align-items:flex-start;padding:9px 8px;border-radius:10px;cursor:pointer;border:1px solid transparent;background:none;color:inherit;text-align:left;font:inherit;width:100%;position:relative}
+.step:hover{background:var(--panel2)}.step.on{background:var(--panel2);border-color:var(--line)}
+.step .n{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:.8rem;border:1.5px solid var(--line);color:var(--mut)}
+.step.on .n{background:var(--ember);border-color:var(--ember);color:#111}.step.done .n{border-color:var(--go);color:var(--go)}
+.step .t{font-weight:600;font-size:.9rem}.step .q{color:var(--mut);font-size:.76rem;line-height:1.3}
+.step:not(:last-of-type)::after{content:"";position:absolute;left:20px;top:38px;bottom:-8px;width:1.5px;background:var(--line)}
+.rail-foot{margin-top:auto;padding:12px 8px 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px;font-size:.8rem;color:var(--mut)}
+.rail-foot label{display:flex;justify-content:space-between;align-items:center;gap:8px}
+kbd{background:var(--panel2);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;font-size:.72rem;font-family:inherit}
+/* ---------- top bar ---------- */
+.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:14px;padding:10px 28px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.progress{flex:1;min-width:120px;height:4px;background:var(--line);border-radius:4px;overflow:hidden}.progress i{display:block;height:100%;background:var(--ember);transition:width .4s}
+.ctx{color:var(--mut);font-size:.8rem}
+main{padding:22px 28px 60px;max-width:1440px;width:100%}
+.page{display:none}.page.on{display:block;animation:in .35s ease}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+/* ---------- page heads ---------- */
+.phead{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px}
+.eyebrow{color:var(--ember);font-weight:700;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase}
+h2{margin:2px 0 4px;font-size:1.75rem;letter-spacing:-.02em}.question{color:var(--mut);font-size:1rem;max-width:760px}
+h3{margin:0 0 4px;font-size:1rem;display:flex;align-items:center;gap:8px}
+.explain{background:linear-gradient(90deg,color-mix(in srgb,var(--ember) 10%,var(--panel)),var(--panel));border:1px solid var(--line);border-left:3px solid var(--ember);border-radius:12px;padding:12px 16px;margin-bottom:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px 22px}
+.explain div{font-size:.86rem}.explain b{display:block;font-size:.72rem;color:var(--ember2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+body.hide-explain .explain{display:none}
+.insight{color:var(--ember2);font-size:.85rem;margin:0 0 10px;display:flex;gap:6px}.insight::before{content:"◆";font-size:.6rem;margin-top:.35em;color:var(--ember)}
+.insight:empty{display:none}
+/* ---------- layout ---------- */
+.grid{display:grid;gap:14px}.g5{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}.g2{grid-template-columns:repeat(auto-fit,minmax(440px,1fr))}.g3{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow);position:relative;min-width:0}
+.card .hint{color:var(--mut);font-size:.78rem;margin:-2px 0 8px}
+.kpi .l{color:var(--mut);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;font-weight:600}.kpi .v{font-size:1.75rem;font-weight:800;letter-spacing:-.02em;margin-top:2px}.kpi .s{color:var(--mut);font-size:.76rem}
+.pin{display:none;position:absolute;top:-10px;left:-10px;width:24px;height:24px;border-radius:50%;background:var(--ember);color:#111;font-weight:800;font-size:.78rem;place-items:center;box-shadow:0 0 0 4px var(--bg);z-index:2}
+body.present .pin{display:grid}
+.talk{display:none;background:color-mix(in srgb,var(--ember) 12%,transparent);border:1px dashed var(--ember);color:var(--txt);border-radius:8px;padding:6px 10px;font-size:.8rem;margin:0 0 10px}
+body.present .talk{display:block}
+/* ---------- controls ---------- */
+select.f,input.f{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit;font-size:.85rem}
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:.8rem;color:var(--mut)}
+.seg{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:3px}
+.seg button{background:none;border:0;color:var(--mut);padding:6px 12px;border-radius:7px;cursor:pointer;font:inherit;font-size:.82rem;font-weight:600}
+.seg button.on{background:var(--ember);color:#111}
+.btn{background:var(--ember);color:#111;border:0;padding:9px 16px;border-radius:9px;font:inherit;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn:disabled{opacity:.35;cursor:not-allowed}.btn.ghost{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
+.btn.red{background:var(--block);color:#fff}.btn.green{background:var(--go);color:#111}.btn.sm{padding:6px 11px;font-size:.8rem}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.nextbar{display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding:16px 18px;border:1px dashed var(--line);border-radius:14px;gap:12px;flex-wrap:wrap}
+.nextbar .mut{font-size:.85rem}
+/* ---------- badges / tables ---------- */
+.badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:.7rem;font-weight:800;letter-spacing:.03em;white-space:nowrap}
+.GO{background:color-mix(in srgb,var(--go) 16%,transparent);color:var(--go)}.CONDITIONAL{background:color-mix(in srgb,var(--cgo) 18%,transparent);color:var(--cgo)}
+.HOLD{background:color-mix(in srgb,var(--hold) 18%,transparent);color:var(--hold)}.BLOCK{background:color-mix(in srgb,var(--block) 16%,transparent);color:var(--block)}
+table{width:100%;border-collapse:collapse;font-size:.85rem}th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--mut);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em}
+td.num,th.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+tr.click{cursor:pointer;transition:background .15s}tr.click:hover{background:var(--panel2)}tr.click:hover td:first-child b{color:var(--ember)}
+.scroll{max-height:560px;overflow:auto}
+.mut{color:var(--mut)}.small{font-size:.8rem}
+.minibar{height:6px;background:var(--panel2);border-radius:4px;overflow:hidden;width:70px;display:inline-block;vertical-align:middle;margin-left:6px}.minibar i{display:block;height:100%;background:var(--ember)}
+/* ---------- funnel ---------- */
+.funnel{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-bottom:14px}
+.fstage{padding:14px 18px;background:var(--panel);border:1px solid var(--line);position:relative}
+.fstage:first-child{border-radius:14px 0 0 14px}.fstage:last-child{border-radius:0 14px 14px 0;background:color-mix(in srgb,var(--ember) 14%,var(--panel));border-color:var(--ember)}
+.fstage+.fstage{border-left:0}.fstage .v{font-size:1.9rem;font-weight:800;letter-spacing:-.02em}.fstage .l{font-size:.78rem;color:var(--mut)}
+.fstage:not(:last-child)::after{content:"›";position:absolute;right:-10px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:var(--bg);border:1px solid var(--line);display:grid;place-items:center;color:var(--ember);font-weight:800;z-index:1;line-height:18px;text-align:center}
+/* ---------- forge ---------- */
+.sentence{font-size:1.3rem;line-height:2.3;font-weight:500}
+.sentence select,.sentence input{background:color-mix(in srgb,var(--ember) 10%,var(--panel2));color:var(--ember2);border:1.5px dashed var(--ember);border-radius:8px;padding:2px 8px;font:inherit;font-weight:700;cursor:pointer;max-width:100%}
+.sentence input{width:110px}
+.verdict-hero{position:relative;display:grid;grid-template-columns:auto minmax(220px,1fr) minmax(380px,1.3fr);gap:22px;align-items:center;border-radius:14px;padding:18px 22px;border:1px solid var(--line);background:var(--panel);margin:14px 0;box-shadow:var(--shadow)}
+.verdict-hero .vv{font-size:1.9rem;font-weight:800;letter-spacing:-.02em}
+.vh-GO{border-color:var(--go);background:linear-gradient(90deg,color-mix(in srgb,var(--go) 14%,var(--panel)),var(--panel))}
+.vh-CONDITIONAL{border-color:var(--cgo);background:linear-gradient(90deg,color-mix(in srgb,var(--cgo) 14%,var(--panel)),var(--panel))}
+.vh-HOLD{border-color:var(--hold)}.vh-BLOCK{border-color:var(--block);background:linear-gradient(90deg,color-mix(in srgb,var(--block) 14%,var(--panel)),var(--panel))}
+.gauge{width:92px;height:92px;position:relative}.gauge svg{transform:rotate(-90deg)}.gauge b{position:absolute;inset:0;display:grid;place-items:center;font-size:1.5rem;font-weight:800}
+.gauge small{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:.6rem;color:var(--mut)}
+.mstats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 18px}.mstats div{font-size:.75rem;color:var(--mut)}.mstats b{display:block;font-size:1.1rem;color:var(--txt)}
+.why h4{margin:12px 0 4px;font-size:.76rem;text-transform:uppercase;letter-spacing:.06em}.why h4:first-child{margin-top:0}
+.why ul{margin:0;padding-left:18px}.why li{margin:3px 0;font-size:.88rem}
+.sbar{margin:10px 0}.sbar .row{justify-content:space-between;font-size:.86rem}.sbar .track{height:9px;background:var(--panel2);border-radius:5px;overflow:hidden;margin-top:4px}.sbar .track i{display:block;height:100%;border-radius:5px;transition:width .5s}
+/* ---------- court / board ---------- */
+.exhibit{background:color-mix(in srgb,var(--block) 9%,transparent);border-left:3px solid var(--block);padding:8px 11px;margin:6px 0;border-radius:6px;font-size:.86rem}
+.exhibit.risk{background:color-mix(in srgb,var(--cgo) 10%,transparent);border-color:var(--cgo)}
+.fix{background:color-mix(in srgb,var(--go) 9%,transparent);border-left:3px solid var(--go);padding:8px 11px;margin:6px 0;border-radius:6px;font-size:.86rem}
+.rails{display:flex;flex-wrap:wrap;gap:8px}.rail{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:6px 10px;font-size:.8rem}.rail b{color:var(--ember2)}
+.lenses{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.lens{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--panel2);display:flex;flex-direction:column;gap:6px}
+.lens.ok{border-color:var(--go)}.lens.no{border-color:var(--block)}
+.lens ul{margin:4px 0 8px;padding-left:18px;font-size:.85rem;flex:1}
+.stamp{font-weight:800;font-size:.85rem;letter-spacing:.08em}
+.timeline{display:flex;gap:0;margin:6px 0 14px}.timeline span{flex:1;text-align:center;font-size:.72rem;color:var(--mut);padding-top:8px;border-top:3px solid var(--line)}
+.timeline span.d{border-color:var(--go);color:var(--txt)}.timeline span.c{border-color:var(--ember);color:var(--txt);font-weight:700}
+.outcome{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:10px}
+.opp{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:.86rem}.opp:last-child{border:0}
+.opp .t{flex:none;width:108px;font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding-top:2px}
+.empty{padding:40px 20px;text-align:center;color:var(--mut)}.empty .btn{margin-top:12px}
+/* ---------- misc ---------- */
+.skel{background:linear-gradient(90deg,var(--panel2),var(--line),var(--panel2));background-size:200% 100%;animation:sh 1.2s infinite;border-radius:8px;height:14px}
+@keyframes sh{to{background-position:-200% 0}}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--txt);color:var(--bg);padding:10px 18px;border-radius:10px;font-weight:600;font-size:.88rem;transition:transform .3s;z-index:50;box-shadow:0 10px 30px #0008}
+#toast.on{transform:translateX(-50%) translateY(0)}
+svg text{fill:var(--txt);font-size:11px;font-family:Inter,sans-serif}
+.legend{display:flex;gap:14px;font-size:.78rem;color:var(--mut);flex-wrap:wrap}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.chart-box{position:relative;height:230px}.chart-box.tall{height:300px}.chart-box.short{height:180px}
+@media(max-width:1000px){body{grid-template-columns:1fr}aside{position:static;height:auto;flex-direction:row;overflow-x:auto;padding:10px}.tag,.rail-foot,.step .q,.step::after{display:none}.logo{white-space:nowrap;align-self:center}.step{width:auto;white-space:nowrap;align-items:center}
+ main{padding:16px}.top{padding:10px 16px}.g2,.g3{grid-template-columns:1fr}.funnel{grid-template-columns:1fr 1fr}.verdict-hero{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style></head><body>
-<header><div><div class="logo">Prometheus <b>PromoForge</b></div><div class="sub">AI promotion &amp; inventory alignment planner · demo date <span id="today"></span> · <span id="scale"></span></div></div>
-<nav id="nav"></nav><div class="row" style="margin-left:auto">Window <select class="f" id="win"></select> Role <select class="f" id="role"><option value="mission">Head of Promotions</option><option value="audience">Marketing</option><option value="forge">Merchandising</option><option value="map">Store Ops</option></select></div></header>
+
+<aside>
+  <div class="logo">Prometheus <b>PromoForge</b></div>
+  <div class="tag">AI promotion &amp; inventory alignment planner</div>
+  <div id="steps"></div>
+  <div class="rail-foot">
+    <label>Presenter mode <button class="btn ghost sm" id="present">Off</button></label>
+    <label>Explainers <button class="btn ghost sm" id="explain">On</button></label>
+    <label>Theme <button class="btn ghost sm" id="theme">Dark</button></label>
+    <div><kbd>←</kbd> <kbd>→</kbd> move between steps · <kbd>P</kbd> presenter</div>
+  </div>
+</aside>
+
+<div>
+<div class="top">
+  <div class="ctx">Step <b id="stepno">1</b> of 7</div>
+  <div class="progress"><i id="prog"></i></div>
+  <div class="filters">Planning window <select class="f" id="win"></select></div>
+  <div class="ctx" id="ctx"></div>
+</div>
 <main>
+
+<!-- 1 MISSION -->
 <section class="page" id="p-mission">
-  <div class="row" style="justify-content:space-between"><div><h2>Mission Control</h2><div class="insight" id="m-insight"></div></div>
-  <div class="row">Objective <select class="f" id="obj"><option value="profit">Profit-first</option><option value="growth">Growth</option><option value="clear">Clear stock</option><option value="retain">Retain</option></select>
-  City <select class="f" id="fcity"><option value="">All</option></select> Category <select class="f" id="fcat"><option value="">All</option></select></div></div>
-  <div class="grid g4" id="kpis"></div>
-  <div class="grid g2" style="margin-top:14px">
-    <div class="card"><h3>Recommended promotions (ranked)</h3><div class="mut" style="font-size:12px;margin-bottom:6px">Click any row to open it in the Forge</div><table id="rec-tbl"></table></div>
-    <div><div class="card"><h3>Verdict mix</h3><canvas id="c-verdict" height="140"></canvas></div>
-    <div class="card" style="margin-top:14px"><h3>Why candidates were blocked</h3><canvas id="c-block" height="120"></canvas></div><div class="card" style="margin-top:14px"><h3>Net profit by category (GO plans)</h3><canvas id="c-cat" height="140"></canvas></div><div class="card" style="margin-top:14px"><h3>Opportunity feed</h3><div id="opps"></div></div></div>
+  <div class="phead"><div><div class="eyebrow">Step 1 · Mission Control</div><h2>Where is the money this festival?</h2>
+  <div class="question">The engine evaluates every segment × product × city × offer combination and ranks the ones worth running.</div></div>
+  <div class="filters"><div class="seg" id="obj"><button data-v="profit" class="on">Profit</button><button data-v="growth">Growth</button><button data-v="clear">Clear stock</button><button data-v="retain">Retain</button></div>
+  <select class="f" id="fcity"><option value="">All cities</option></select><select class="f" id="fcat"><option value="">All categories</option></select></div></div>
+  <div class="explain"><div><b>What you're seeing</b>A pipeline from thousands of candidate promotions down to the few worth running.</div><div><b>How to read it</b>Green GO = safe and profitable. Amber = run with conditions. Red = blocked by a guardrail.</div><div><b>Try this</b>Switch the objective chip; the ranking and totals re-compute live.</div></div>
+  <div class="insight" id="m-insight"></div>
+  <div class="funnel" id="funnel"></div>
+  <div class="grid g5" id="kpis"></div>
+  <div class="grid g2" style="margin-top:14px;grid-template-columns:1.4fr 1fr">
+    <div class="card"><span class="pin">1</span><h3>Recommended promotions</h3><div class="talk">Every row is a full plan with a verdict and readiness score. Click one to open it in the Forge.</div><div class="hint">Ranked by the chosen objective · click any row to open it in the Forge</div><div class="scroll" style="max-height:640px"><table id="rec-tbl"></table></div></div>
+    <div class="grid" style="align-content:start">
+      <div class="card"><span class="pin">2</span><h3>Verdict mix</h3><div class="insight" id="i-verdict"></div><div class="chart-box short"><canvas id="c-verdict"></canvas></div></div>
+      <div class="card"><h3>Why candidates were blocked</h3><div class="insight" id="i-block"></div><div class="chart-box short"><canvas id="c-block"></canvas></div></div>
+      <div class="card"><h3>Net profit by category</h3><div class="insight" id="i-cat"></div><div class="chart-box short"><canvas id="c-cat"></canvas></div></div>
+      <div class="card"><span class="pin">3</span><h3>Opportunity feed</h3><div class="talk">Signals the engine picked up: excess stock, stock-out risk, search surges, festivals.</div><div id="opps"></div></div>
+    </div>
   </div>
+  <div class="nextbar" data-next></div>
 </section>
 
-<section class="page" id="p-forge">
-  <h2>Promotion Forge</h2><div class="insight">Edit any highlighted word; the engine re-simulates impact, stock and risk right away.</div>
-  <div class="card sentence" id="sentence"></div>
-  <div class="grid g4" style="margin-top:14px" id="f-kpis"></div>
-  <div class="grid g2" style="margin-top:14px">
-    <div class="card"><h3>Why this recommendation</h3><div id="f-why"></div></div>
-    <div class="card"><h3>Readiness breakdown</h3><div id="f-scores"></div></div>
-    <div class="card"><h3>Stock burn-down (8-day window)</h3><div class="insight" id="f-burn-i"></div><canvas id="c-burn" height="160"></canvas></div>
-    <div class="card"><h3>Discount frontier</h3><div class="insight" id="f-front-i"></div><canvas id="c-front" height="160"></canvas></div>
-    <div class="card"><h3>Local demand signal (52 weeks, city × category)</h3><canvas id="c-hist" height="160"></canvas></div><div class="card"><h3>Profit waterfall</h3><canvas id="c-water" height="160"></canvas></div>
-    <div class="card"><h3>Campaign twins (memory)</h3><div id="f-twins"></div><div class="row" style="margin-top:12px"><button class="btn" id="submit">Submit for three-lens sign-off →</button><span id="submit-msg" class="mut"></span></div></div>
-  </div>
-</section>
-
+<!-- 2 MAP -->
 <section class="page" id="p-map">
-  <h2>Mismatch Map</h2><div class="insight" id="map-i"></div>
-  <div class="grid g2"><div class="card"><h3>Demand vs stock and proposed transfers</h3><svg id="map" viewBox="0 0 420 460" style="width:100%;max-height:520px"></svg>
-  <div class="mut" style="font-size:12px"><span style="color:var(--block)">●</span> short SKUs &nbsp; <span style="color:var(--blue)">●</span> excess SKUs &nbsp; <span style="color:var(--ember)">—</span> transfer</div></div>
-  <div class="card"><h3>Stock transfers</h3><table id="xfer"></table><h3 style="margin-top:16px">Most critical cover gaps</h3><table id="gaps"></table></div></div>
+  <div class="phead"><div><div class="eyebrow">Step 2 · Mismatch Map</div><h2>Do we have stock where the demand is?</h2>
+  <div class="question">Promoting a product that will run out wastes money and annoys customers. This shows where demand and inventory don't line up.</div></div></div>
+  <div class="explain"><div><b>What you're seeing</b>Each city: red ring = SKUs short of stock, blue ring = SKUs with excess stock.</div><div><b>The arcs</b>Proposed transfers from excess to short cities; they unlock promotions without new purchase orders.</div><div><b>Why it matters</b>The engine blocks promos where stock-out risk is high. Transfers turn some of those blocks into GO.</div></div>
+  <div class="insight" id="map-i"></div>
+  <div class="grid g2">
+    <div class="card"><span class="pin">1</span><h3>Demand vs stock across India</h3><div class="talk">Bigger red ring = more SKUs about to run out in that city.</div><svg id="map" viewBox="0 0 440 470" style="width:100%;max-height:560px"></svg>
+    <div class="legend"><span><i class="dot" style="background:var(--block)"></i>short SKUs</span><span><i class="dot" style="background:var(--blue)"></i>excess SKUs</span><span><i class="dot" style="background:var(--ember)"></i>proposed transfer</span></div></div>
+    <div class="grid" style="align-content:start">
+      <div class="card"><span class="pin">2</span><h3>Proposed stock transfers</h3><div class="scroll" style="max-height:260px"><table id="xfer"></table></div></div>
+      <div class="card"><h3>Most critical cover gaps</h3><div class="hint">Days of stock left at current demand; below the window length means a stock-out</div><table id="gaps"></table></div>
+    </div>
+  </div>
+  <div class="nextbar" data-next></div>
 </section>
 
-<section class="page" id="p-court">
-  <h2>Guardrail Court</h2><div class="insight">The engine also rejects promotions. Each one lists evidence and what would make it admissible.</div>
-  <div class="card" style="margin-bottom:14px"><h3>Active guardrails</h3><div id="rails" class="row"></div></div>
-  <div class="grid g2" id="court"></div>
-</section>
-
-<section class="page" id="p-approve">
-  <h2>Approval Board: Three-Lens Sign-off</h2><div class="insight">Marketing, Merchandising and Store Ops review one campaign and one shared readiness score. All three must approve.</div>
-  <div id="board"></div>
-</section>
-
+<!-- 3 AUDIENCE -->
 <section class="page" id="p-audience">
-  <h2>Audience Studio</h2><div class="insight" id="aud-i"></div>
-  <div class="grid g2"><div class="card"><h3>Segments (consent-filtered, k-anonymous)</h3><table id="aud"></table></div>
-  <div><div class="card"><h3>Predicted conversion with offer vs without</h3><canvas id="c-aud" height="170"></canvas></div>
-  <div class="card" style="margin-top:14px"><h3>Uplift model card</h3><div id="model"></div></div></div></div>
+  <div class="phead"><div><div class="eyebrow">Step 3 · Audience Studio</div><h2>Who actually needs a nudge?</h2>
+  <div class="question">Giving a discount to someone who'd buy anyway is pure loss. The uplift model finds the customers an offer actually changes.</div></div></div>
+  <div class="explain"><div><b>What you're seeing</b>Customer segments (consented, never below 50 people) and how much an offer moves each one.</div><div><b>Persuadable</b>The share the model predicts will buy <i>because of</i> the offer, not anyway.</div><div><b>Proof</b>The model card compares its top 30% with a random holdout on real campaign history.</div></div>
+  <div class="insight" id="aud-i"></div>
+  <div class="grid g2">
+    <div class="card"><span class="pin">1</span><h3>Segments</h3><div class="hint">Consent-filtered · k-anonymous</div><table id="aud"></table></div>
+    <div class="grid" style="align-content:start">
+      <div class="card"><span class="pin">2</span><h3>Conversion with offer vs without</h3><div class="insight" id="aud-ci"></div><div class="chart-box"><canvas id="c-aud"></canvas></div></div>
+      <div class="card"><span class="pin">3</span><h3>Uplift model card</h3><div class="talk">This is the proof the AI isn't guessing: it's validated against a real holdout group.</div><div id="model"></div></div>
+    </div>
+  </div>
+  <div class="nextbar" data-next></div>
 </section>
+
+<!-- 4 FORGE -->
+<section class="page" id="p-forge">
+  <div class="phead"><div><div class="eyebrow">Step 4 · Promotion Forge</div><h2>Build and stress-test one promotion</h2>
+  <div class="question">The promotion is written as a plain sentence. Change any <span style="color:var(--ember)">highlighted</span> word and the engine re-simulates profit, stock and risk instantly.</div></div></div>
+  <div class="explain"><div><b>Try this live</b>Change the offer from 10% to 25% and watch profit and the verdict change.</div><div><b>Then</b>Switch city to one flagged short on the map; watch stock-out risk jump.</div><div><b>Every verdict is explained</b>Drivers, risks, and "what would change this".</div></div>
+  <div class="card sentence" id="sentence"><span class="pin">1</span><div class="skel" style="width:70%"></div></div>
+  <div id="vhero"></div>
+  <div class="grid g3">
+    <div class="card why"><span class="pin">3</span><h3>Why this verdict</h3><div class="talk">The engine never gives a bare number: here's what pushed it up, what worries it, and what would flip it.</div><div id="f-why"></div></div>
+    <div class="card"><h3>Readiness breakdown</h3><div class="hint">Weighted blend of five scores into one number all teams share</div><div id="f-scores"></div></div>
+    <div class="card"><h3>Profit waterfall</h3><div class="insight" id="i-water"></div><div class="chart-box short"><canvas id="c-water"></canvas></div></div>
+    <div class="card"><span class="pin">4</span><h3>Stock burn-down</h3><div class="insight" id="f-burn-i"></div><div class="chart-box short"><canvas id="c-burn"></canvas></div></div>
+    <div class="card"><h3>Discount frontier</h3><div class="insight" id="f-front-i"></div><div class="chart-box short"><canvas id="c-front"></canvas></div></div>
+    <div class="card"><h3>Local demand signal · 52 weeks</h3><div class="insight" id="i-hist"></div><div class="chart-box short"><canvas id="c-hist"></canvas></div></div>
+  </div>
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card"><h3>Campaign twins from memory</h3><div class="insight" id="i-twins"></div><div id="f-twins"></div></div>
+    <div class="card" style="display:flex;flex-direction:column;justify-content:center;gap:10px"><span class="pin">5</span><h3>Ready to go?</h3><div class="mut small">Submitting creates a campaign that Marketing, Merchandising and Store Ops must all sign off. Blocked promotions can't be submitted.</div>
+      <div class="row"><button class="btn" id="submit">Submit for three-lens sign-off →</button><span id="submit-msg" class="mut small"></span></div></div>
+  </div>
+  <div class="nextbar" data-next></div>
+</section>
+
+<!-- 5 COURT -->
+<section class="page" id="p-court">
+  <div class="phead"><div><div class="eyebrow">Step 5 · Guardrail Court</div><h2>What did the AI refuse, and why?</h2>
+  <div class="question">A good planner also says no. Every blocked promotion shows the evidence against it and exactly what would make it admissible.</div></div></div>
+  <div class="explain"><div><b>Exhibits</b>The specific guardrail each plan broke, with its numbers.</div><div><b>Admissible if</b>The concrete change that would let it through.</div><div><b>Rework</b>Opens it in the Forge so you can try the fix live.</div></div>
+  <div class="card" style="margin-bottom:14px"><span class="pin">1</span><h3>Active guardrails</h3><div class="hint">Hard rules no recommendation can break</div><div class="rails" id="rails"></div></div>
+  <div class="grid g3" id="court"></div>
+  <div class="nextbar" data-next></div>
+</section>
+
+<!-- 6 APPROVE -->
+<section class="page" id="p-approve">
+  <div class="phead"><div><div class="eyebrow">Step 6 · Approval Board</div><h2>Three teams, one score</h2>
+  <div class="question">Marketing, Merchandising and Store Ops each see the numbers they care about, on the same shared readiness score. All three must approve. Then Time Warp runs the campaign in the simulated world.</div></div></div>
+  <div class="explain"><div><b>1 · Review</b>Each lens shows its own evidence.</div><div><b>2 · Seal</b>Approve or reject per team; one rejection stops it.</div><div><b>3 · Time Warp</b>Fast-forward through the window and compare predicted vs actual.</div></div>
+  <div id="board"></div>
+  <div class="nextbar" data-next></div>
+</section>
+
+<!-- 7 MEMORY -->
 <section class="page" id="p-memory">
-  <h2>Campaign Memory</h2><div class="insight" id="mem-i"></div>
-  <div class="grid g2"><div class="card"><canvas id="c-cal" height="200"></canvas></div><div class="card" style="max-height:560px;overflow:auto"><table id="mem"></table></div></div>
+  <div class="phead"><div><div class="eyebrow">Step 7 · Campaign Memory</div><h2>Did we learn from the past?</h2>
+  <div class="question">Every forecast is checked against what actually happened. Dots on the dashed line mean the forecast was right.</div></div></div>
+  <div class="explain"><div><b>Calibration chart</b>Predicted ROI (x) vs actual ROI (y) for past campaigns.</div><div><b>Error band</b>The measured error feeds back into Time Warp outcomes.</div><div><b>Why it matters</b>Trust comes from a track record, not a claim.</div></div>
+  <div class="insight" id="mem-i"></div>
+  <div class="grid g2">
+    <div class="card"><span class="pin">1</span><h3>Predicted vs actual ROI</h3><div class="chart-box tall"><canvas id="c-cal"></canvas></div></div>
+    <div class="card"><h3>Past campaigns</h3><div class="scroll" style="max-height:360px"><table id="mem"></table></div></div>
+  </div>
+  <div class="nextbar" data-next></div>
 </section>
 </main>
+</div>
+<div id="toast"></div>
+
 <script>
-const $=s=>document.querySelector(s), api=async(u,o)=>{const r=await fetch(u,o?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(o)}:{});const j=await r.json();if(!r.ok)throw j;return j};
-const PAGES=[['mission','Mission Control'],['forge','Promotion Forge'],['map','Mismatch Map'],['audience','Audience Studio'],['court','Guardrail Court'],['approve','Approval Board'],['memory','Campaign Memory']];
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const api=async(u,o)=>{const r=await fetch(u,o?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(o)}:{});const j=await r.json();if(!r.ok)throw j;return j};
+const store={get:k=>{try{return localStorage.getItem('pf.'+k)}catch{return null}},set:(k,v)=>{try{localStorage.setItem('pf.'+k,v)}catch{}}};
+const STEPS=[['mission','Mission Control','Where is the money?'],['map','Mismatch Map','Is stock where demand is?'],['audience','Audience Studio','Who needs a nudge?'],['forge','Promotion Forge','Build & stress-test'],['court','Guardrail Court','What got refused?'],['approve','Approval Board','Three teams sign off'],['memory','Campaign Memory','Did we learn?']];
 const inr=x=>{const s=x<0?'-':'';x=Math.abs(x);if(x>=1e7)return s+'₹'+(x/1e7).toFixed(2)+' Cr';if(x>=1e5)return s+'₹'+(x/1e5).toFixed(1)+' L';return s+'₹'+Math.round(x).toLocaleString('en-IN')};
+const num=x=>Math.round(x).toLocaleString('en-IN');
 const badge=v=>`<span class="badge ${v.split(' ')[0]}">${v}</span>`;
-const charts={};function chart(id,cfg){charts[id]?.destroy();charts[id]=new Chart($('#'+id),cfg)}
-Chart.defaults.color='#9aa0ad';Chart.defaults.borderColor='#2b2f3a';
-let META,CUR,LAST;
-$('#nav').innerHTML=PAGES.map(([k,l])=>`<button data-p="${k}">${l}</button>`).join('');
-function go(p){document.querySelectorAll('.page').forEach(e=>e.classList.toggle('on',e.id==='p-'+p));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
- ({map:loadMap,approve:loadBoard,memory:loadMem,audience:loadAud})[p]?.()}
-$('#nav').onclick=e=>e.target.dataset.p&&go(e.target.dataset.p);
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const VC=()=>({GO:css('--go'),'CONDITIONAL GO':css('--cgo'),HOLD:css('--hold'),BLOCK:css('--block')});
+const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2600)};
+const charts={};function chart(id,cfg){charts[id]?.destroy();cfg.options={maintainAspectRatio:false,animation:matchMedia('(prefers-reduced-motion: reduce)').matches?false:{duration:500},...cfg.options};charts[id]=new Chart($('#'+id),cfg)}
+function chartTheme(){Chart.defaults.color=css('--mut');Chart.defaults.borderColor=css('--line');Chart.defaults.font.family='Inter, system-ui, sans-serif'}
+let META,CUR,LAST,PAGE='mission',OBJ='profit';const visited=new Set();
 
-async function init(){META=await api('/api/meta');$('#today').textContent=META.today;$('#scale').textContent=`digital twin: ${META.data.customers.toLocaleString('en-IN')} customers, ${META.data.stores} stores, ${META.data.skus} SKUs (scaled ×${META.scale})`;
- META.cities.forEach(c=>$('#fcity').innerHTML+=`<option value="${c.code}">${c.name}</option>`);Object.entries(META.windows).forEach(([k,v])=>$('#win').innerHTML+=`<option value="${k}" ${k==='diwali'?'selected':''}>${v.name} (${v.start.slice(5)} to ${v.end.slice(5)})</option>`);$('#win').onchange=()=>{CUR=null;loadMission();if($('#p-map').classList.contains('on'))loadMap()};$('#role').onchange=()=>go($('#role').value);[...new Set(META.products.map(p=>p.cat))].forEach(c=>$('#fcat').innerHTML+=`<option>${c}</option>`);
- ['#obj','#fcity','#fcat'].forEach(s=>$(s).onchange=loadMission);
- $('#rails').innerHTML=Object.entries(META.guardrails).map(([k,v])=>`<span class="badge HOLD">${k.replaceAll('_',' ')}: ${v}</span>`).join('');
- await loadMission();go('mission');}
+/* ---------- navigation ---------- */
+$('#steps').innerHTML=STEPS.map(([k,t,q],i)=>`<button class="step" data-p="${k}"><span class="n">${i+1}</span><span><div class="t">${t}</div><div class="q">${q}</div></span></button>`).join('');
+$('#steps').onclick=e=>{const b=e.target.closest('[data-p]');b&&go(b.dataset.p)};
+$$('[data-next]').forEach(el=>{const i=STEPS.findIndex(s=>'p-'+s[0]===el.closest('.page').id),n=STEPS[i+1],p=STEPS[i-1];
+ el.innerHTML=`<div>${p?`<button class="btn ghost sm" data-go="${p[0]}">← ${p[1]}</button>`:''}</div>`+(n?`<div class="row"><span class="mut">Next: <b>${n[2]}</b></span><button class="btn" data-go="${n[0]}">${n[1]} →</button></div>`:`<div class="row"><span class="mut">That's the full loop: spot → check → target → build → guard → approve → learn.</span><button class="btn" data-go="mission">Back to start ↺</button></div>`)});
+document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');g&&go(g.dataset.go)});
+function go(p){PAGE=p;visited.add(p);const i=STEPS.findIndex(s=>s[0]===p);
+ $$('.page').forEach(e=>e.classList.toggle('on',e.id==='p-'+p));
+ $$('.step').forEach((b,j)=>{b.classList.toggle('on',b.dataset.p===p);b.classList.toggle('done',visited.has(b.dataset.p)&&b.dataset.p!==p)});
+ $('#stepno').textContent=i+1;$('#prog').style.width=((i+1)/STEPS.length*100)+'%';
+ scrollTo({top:0,behavior:'instant'});history.replaceState(null,'','#'+p);
+ ({map:loadMap,approve:loadBoard,memory:loadMem,audience:loadAud,forge:()=>!CUR&&LAST?.top[0]&&openForge(LAST.top[0],true)})[p]?.()}
+document.addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;const i=STEPS.findIndex(s=>s[0]===PAGE);
+ if(e.key==='ArrowRight'&&i<STEPS.length-1)go(STEPS[i+1][0]);else if(e.key==='ArrowLeft'&&i>0)go(STEPS[i-1][0]);else if(e.key.toLowerCase()==='p')togglePresent();else if(/^[1-7]$/.test(e.key))go(STEPS[+e.key-1][0])});
 
-async function loadMission(){const q=new URLSearchParams({objective:$('#obj').value,window:$('#win').value});$('#fcity').value&&q.set('city',$('#fcity').value);$('#fcat').value&&q.set('category',$('#fcat').value);
- const d=await api('/api/recommendations?'+q);LAST=d;$('#m-insight').textContent=d.insight;const k=d.kpis;
- $('#kpis').innerHTML=[['Candidates evaluated',k.candidates],['Net profit (top plans)',k.net_gp_top],['Avg readiness (top)',k.avg_readiness],['Discount leakage (all)',k.leakage_all],['Blocked by guardrails',k.counts.BLOCK]].map(([l,v])=>`<div class="card kpi"><div class="l">${l}</div><div class="v">${v}</div></div>`).join('');
- $('#rec-tbl').innerHTML='<tr><th>Promotion</th><th>Verdict</th><th>Ready</th><th>Net GP</th><th>Stock-out</th></tr>'+d.top.map((r,i)=>`<tr class="click" data-i="${i}"><td><b>${r.offer}</b> · ${r.product}<div class="mut">${r.segment} · ${r.city_name}</div></td><td>${badge(r.verdict)}</td><td>${r.readiness}</td><td>${r.fmt.net_gp}</td><td>${(r.p_stockout*100).toFixed(0)}%</td></tr>`).join('');
- $('#rec-tbl').onclick=e=>{const tr=e.target.closest('tr[data-i]');if(tr)openForge(d.top[tr.dataset.i])};
- chart('c-verdict',{type:'bar',data:{labels:Object.keys(k.counts),datasets:[{data:Object.values(k.counts),backgroundColor:['#34c38f','#e6b54a','#8a93a6','#ef5a5a']}]},options:{indexAxis:'y',plugins:{legend:{display:false}}}});
- chart('c-block',{type:'doughnut',data:{labels:Object.keys(d.block_reasons),datasets:[{data:Object.values(d.block_reasons),backgroundColor:['#ef5a5a','#e6b54a','#8a93a6','#5aa2ef']}]},options:{plugins:{legend:{position:'right'}}}});
- chart('c-cat',{type:'bar',data:{labels:Object.keys(d.gp_by_cat),datasets:[{data:Object.values(d.gp_by_cat),backgroundColor:'#ff7a3d'}]},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>inr(c.raw)}}}}});
- $('#opps').innerHTML=d.opportunities.map(o=>`<div class="opp"><div class="t">${o.type}</div><div>${o.text}</div></div>`).join('');
- renderCourt(d.blocked);
- if(!CUR&&d.top[0])openForge(d.top[0],true);if(!d.top.length)$('#rec-tbl').innerHTML='<tr><td class=mut>No GO plans for this filter. See Guardrail Court.</td></tr>';}
+/* ---------- toggles ---------- */
+function togglePresent(on){on=on??!document.body.classList.contains('present');document.body.classList.toggle('present',on);$('#present').textContent=on?'On':'Off';store.set('present',on?1:0);setTimeout(()=>Object.values(charts).forEach(c=>c.resize()),50)}
+function setExplain(on){document.body.classList.toggle('hide-explain',!on);$('#explain').textContent=on?'On':'Off';store.set('explain',on?1:0)}
+function setTheme(t){document.documentElement.dataset.theme=t;$('#theme').textContent=t==='light'?'Light':'Dark';store.set('theme',t);chartTheme();rerender()}
+$('#present').onclick=()=>togglePresent();$('#explain').onclick=()=>setExplain(document.body.classList.contains('hide-explain'));$('#theme').onclick=()=>setTheme(document.documentElement.dataset.theme==='light'?'dark':'light');
+function rerender(){if(!META)return;LAST&&renderMission(LAST);CUR?.last&&renderForge(CUR.last);({map:loadMap,memory:loadMem,audience:loadAud})[PAGE]?.()}
 
+/* ---------- init ---------- */
+async function init(){
+ setTheme(store.get('theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'));setExplain(store.get('explain')!=='0');togglePresent(store.get('present')==='1');
+ META=await api('/api/meta');
+ $('#ctx').innerHTML=`Demo date <b>${META.today}</b> · digital twin of ${num(META.data.customers)} customers, ${META.data.stores} stores, ${META.data.skus} SKUs`;
+ META.cities.forEach(c=>$('#fcity').innerHTML+=`<option value="${c.code}">${c.name}</option>`);
+ [...new Set(META.products.map(p=>p.cat))].forEach(c=>$('#fcat').innerHTML+=`<option>${c}</option>`);
+ Object.entries(META.windows).forEach(([k,v])=>$('#win').innerHTML+=`<option value="${k}" ${k==='diwali'?'selected':''}>${v.name} (${v.start.slice(5)} → ${v.end.slice(5)})</option>`);
+ $('#win').onchange=()=>{CUR=null;loadMission();PAGE==='map'&&loadMap()};
+ ['#fcity','#fcat'].forEach(s=>$(s).onchange=loadMission);
+ $('#obj').onclick=e=>{const b=e.target.closest('button');if(!b)return;OBJ=b.dataset.v;$$('#obj button').forEach(x=>x.classList.toggle('on',x===b));loadMission()};
+ $('#rails').innerHTML=Object.entries(META.guardrails).map(([k,v])=>`<span class="rail">${k.replaceAll('_',' ')}: <b>${v}</b></span>`).join('');
+ await loadMission();const h=location.hash.slice(1);go(STEPS.some(s=>s[0]===h)?h:'mission')}
+
+/* ---------- 1 mission ---------- */
+async function loadMission(){const q=new URLSearchParams({objective:OBJ,window:$('#win').value});$('#fcity').value&&q.set('city',$('#fcity').value);$('#fcat').value&&q.set('category',$('#fcat').value);
+ $('#rec-tbl').innerHTML='<tr><td>'+'<div class="skel" style="margin:8px 0"></div>'.repeat(6)+'</td></tr>';
+ const d=await api('/api/recommendations?'+q);LAST=d;renderMission(d);if(!CUR&&d.top[0])openForge(d.top[0],true)}
+function renderMission(d){const k=d.kpis,c=k.counts,I=d.insights||{};$('#m-insight').textContent=d.insight;
+ $('#funnel').innerHTML=[['Candidates evaluated',k.candidates],['Passed guardrails',c.GO+c['CONDITIONAL GO']],['On hold / blocked',c.HOLD+c.BLOCK],['Recommended',d.top.length]].map(([l,v])=>`<div class="fstage"><div class="v">${num(v)}</div><div class="l">${l}</div></div>`).join('');
+ $('#kpis').innerHTML=[['Net profit (top plans)',k.net_gp_top,'incremental, after leakage & costs'],['Avg readiness',k.avg_readiness+'<span class="mut" style="font-size:1rem">/100</span>','shared score across teams'],['Discount leakage',k.leakage_all,'across all candidates'],['GO',num(c.GO),'safe to run'],['Blocked',num(c.BLOCK),'see Guardrail Court']].map(([l,v,s])=>`<div class="card kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join('');
+ $('#rec-tbl').innerHTML=d.top.length?'<tr><th>#</th><th>Promotion</th><th>Verdict</th><th class="num">Readiness</th><th class="num">Net profit</th><th class="num">Stock-out</th></tr>'+d.top.map((r,i)=>`<tr class="click" data-i="${i}"><td class="mut">${i+1}</td><td><b>${r.offer}</b> · ${r.product}<div class="mut small">${r.segment} · ${r.city_name}</div></td><td>${badge(r.verdict)}</td><td class="num">${r.readiness}<span class="minibar"><i style="width:${r.readiness}%"></i></span></td><td class="num"><b>${r.fmt.net_gp}</b></td><td class="num" style="color:${r.p_stockout>.2?'var(--block)':'inherit'}">${(r.p_stockout*100).toFixed(0)}%</td></tr>`).join(''):'<tr><td class="empty">No runnable plans for this filter. <br><button class="btn ghost sm" data-go="court">See what was blocked →</button></td></tr>';
+ $('#rec-tbl').onclick=e=>{const tr=e.target.closest('tr[data-i]');tr&&openForge(d.top[tr.dataset.i])};
+ $('#i-verdict').textContent=I.verdict||'';$('#i-block').textContent=I.block||'';$('#i-cat').textContent=I.cat||'';
+ const vc=VC();chart('c-verdict',{type:'bar',data:{labels:Object.keys(c),datasets:[{data:Object.values(c),backgroundColor:Object.keys(c).map(x=>vc[x]),borderRadius:6}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{display:false}}}}});
+ chart('c-block',{type:'doughnut',data:{labels:Object.keys(d.block_reasons),datasets:[{data:Object.values(d.block_reasons),backgroundColor:[css('--block'),css('--cgo'),css('--hold'),css('--blue')],borderWidth:0}]},options:{cutout:'62%',plugins:{legend:{position:'right'}}}});
+ const cat=Object.entries(d.gp_by_cat).sort((a,b)=>b[1]-a[1]);
+ chart('c-cat',{type:'bar',data:{labels:cat.map(x=>x[0]),datasets:[{data:cat.map(x=>x[1]),backgroundColor:css('--ember'),borderRadius:5}]},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>inr(c.raw)}}},scales:{y:{ticks:{callback:v=>inr(v)}},x:{grid:{display:false}}}}});
+ const OC={'Excess stock':'--blue','Stock-out risk':'--block','Demand surge':'--go','Festival':'--ember','At-risk customers':'--cgo'};
+ $('#opps').innerHTML=d.opportunities.map(o=>`<div class="opp"><div class="t" style="color:var(${OC[o.type]||'--ember'})">${o.type}</div><div>${o.text}</div></div>`).join('');
+ renderCourt(d.blocked)}
+
+/* ---------- 4 forge ---------- */
 function sel(id,opts,val){return `<select id="${id}">${opts.map(([v,l])=>`<option value="${v}" ${v==val?'selected':''}>${l}</option>`).join('')}</select>`}
 function openForge(r,silent){CUR={segment:r.segment,sku:r.sku,city:r.city,offer_idx:r.offer_idx,channel:r.channel,cap:r.cap||null,window:$('#win').value};renderSentence();simulate();if(!silent)go('forge')}
-function renderSentence(){const c=CUR;$('#sentence').innerHTML=`Offer ${sel('s-offer',META.offers.map((o,i)=>[i,o]),c.offer_idx)} to ${sel('s-seg',Object.entries(META.segments).map(([k,v])=>[k,`${k} (${v.toLocaleString('en-IN')})`]),c.segment)} on ${sel('s-sku',META.products.map(p=>[p.sku,p.name]),c.sku)} in ${sel('s-city',META.cities.map(x=>[x.code,x.name]),c.city)} during <b>${META.windows[c.window].name}</b> via ${sel('s-ch',META.channels.map(x=>[x,x]),c.channel)}, capped at <input id="s-cap" type="number" placeholder="no cap" value="${c.cap??''}"> units.`;
+function renderSentence(){const c=CUR;$('#sentence').innerHTML=`<span class="pin">1</span>Offer ${sel('s-offer',META.offers.map((o,i)=>[i,o]),c.offer_idx)} to ${sel('s-seg',Object.entries(META.segments).map(([k,v])=>[k,`${k} (${num(v)})`]),c.segment)} on ${sel('s-sku',META.products.map(p=>[p.sku,p.name]),c.sku)} in ${sel('s-city',META.cities.map(x=>[x.code,x.name]),c.city)} during <b>${META.windows[c.window].name}</b> via ${sel('s-ch',META.channels.map(x=>[x,x]),c.channel)}, capped at <input id="s-cap" type="number" min="1" placeholder="no cap" value="${c.cap??''}"> units.`;
  $('#sentence').onchange=()=>{Object.assign(CUR,{offer_idx:+$('#s-offer').value,segment:$('#s-seg').value,sku:$('#s-sku').value,city:$('#s-city').value,channel:$('#s-ch').value,cap:$('#s-cap').value?+$('#s-cap').value:null});simulate()}}
-async function simulate(){const r=await api('/api/simulate',CUR);CUR.last=r;$('#submit-msg').textContent='';
- $('#f-kpis').innerHTML=[['Verdict',badge(r.verdict)],['Readiness',r.readiness+'/100'],['Incremental units',r.incr_units],['Net profit',r.fmt.net_gp],['ROI',r.roi+'×'],['Stock-out prob.',(r.p_stockout*100).toFixed(0)+'%'],['Leakage',r.fmt.leakage+` (${(r.leak_share*100).toFixed(0)}%)`],['Install load',r.cap_load?(r.cap_load*100).toFixed(0)+'%':'n/a']].map(([l,v])=>`<div class="card kpi"><div class="l">${l}</div><div class="v" style="font-size:20px">${v}</div></div>`).join('');
- $('#f-why').innerHTML=`<b>Drivers</b><ul>${r.drivers.map(x=>`<li>${x}</li>`).join('')}</ul>`+(r.blocks.length?`<b style="color:var(--block)">Blocking</b><ul>${r.blocks.map(x=>`<li>${x}</li>`).join('')}</ul>`:'')+(r.risks.length?`<b style="color:var(--cgo)">Operational risks</b><ul>${r.risks.map(x=>`<li>${x}</li>`).join('')}</ul>`:'<div class="mut">No operational risks flagged.</div>')+`<b>What would change this</b><ul>${r.what_would_change.map(x=>`<li>${x}</li>`).join('')}</ul>`;
- $('#f-scores').innerHTML=Object.entries(r.scores).map(([k,v])=>`<div style="margin:8px 0"><div class="row" style="justify-content:space-between"><span>${k} <span class="mut">(w ${META.weights[k]})</span></span><b>${v}</b></div><div class="bar"><i style="width:${v}%"></i></div></div>`).join('')+`<div class="mut" style="margin-top:8px">Persuadable audience ${r.audience} · reach ${r.reach} · festival ×${r.fest} · intent ×${r.intent} · baseline ${r.baseline_units} + incremental ${r.incr_units} promo units · organic ${r.organic_units} · available ${r.available}</div>`;
- const ib=r.inbound.length?r.inbound.map(i=>`${i.qty} on day ${i.day}`).join(', '):'none';$('#f-burn-i').textContent=(r.stockout_day?`Runs out on day ${r.stockout_day}. `:`Stock holds for the full window. `)+`Projected opening stock ${r.stock}; inbound POs: ${ib}.`;
- chart('c-hist',{data:{labels:r.history.weeks,datasets:[{type:'bar',label:'Units sold',data:r.history.units,backgroundColor:'#ff7a3d88',yAxisID:'y'},{type:'line',label:'Web searches',data:r.history.searches,borderColor:'#5aa2ef',pointRadius:0,yAxisID:'y1'}]},options:{scales:{y1:{position:'right',grid:{display:false}},x:{ticks:{maxTicksLimit:8}}}}});
- chart('c-burn',{type:'line',data:{labels:r.burn.map((_,i)=>'D'+(i+1)),datasets:[{label:'Units left',data:r.burn,borderColor:'#ff7a3d',backgroundColor:'#ff7a3d33',fill:true,tension:.3}]},options:{plugins:{legend:{display:false}}}});
- const best=r.frontier.reduce((a,b)=>b.net_gp>a.net_gp?b:a);$('#f-front-i').textContent=`Highest profit offer: ${best.offer} (${inr(best.net_gp)}). Deeper discounts buy units but erode margin.`;
- chart('c-front',{data:{labels:r.frontier.map(f=>f.offer),datasets:[{type:'bar',label:'Net GP',data:r.frontier.map(f=>f.net_gp),backgroundColor:r.frontier.map(f=>({GO:'#34c38f',BLOCK:'#ef5a5a',HOLD:'#8a93a6'})[f.verdict]||'#e6b54a'),yAxisID:'y'},{type:'line',label:'Incr. units',data:r.frontier.map(f=>f.incr_units),borderColor:'#5aa2ef',yAxisID:'y1'}]},options:{scales:{y1:{position:'right',grid:{display:false}}}}});
- const a1=r.incr_gp-r.leakage;chart('c-water',{type:'bar',data:{labels:['Incremental GP','Leakage','Comms + stock-out','Net GP'],datasets:[{data:[[0,r.incr_gp],[a1,r.incr_gp],[r.net_gp,a1],[0,r.net_gp]],backgroundColor:['#34c38f','#ef5a5a','#e6b54a','#ff7a3d']}]},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>inr(c.raw[1]-c.raw[0])}}}}});
- $('#f-twins').innerHTML='<table><tr><th>Past campaign</th><th>Pred ROI</th><th>Actual</th><th>Stock-outs</th></tr>'+r.twins.map(t=>`<tr><td>${t.name}</td><td>${t.pred_roi}×</td><td>${t.actual_roi}×</td><td>${t.stockouts}</td></tr>`).join('')+'</table>';
- $('#submit').disabled=r.verdict==='BLOCK';$('#submit').style.opacity=r.verdict==='BLOCK'?.4:1;}
-$('#submit').onclick=async()=>{try{const c=await api('/api/campaigns',CUR);$('#submit-msg').textContent=`${c.id} created. Open Approval Board.`}catch(e){$('#submit-msg').textContent=e.detail?.msg||'Error'}};
+async function simulate(){const prev=CUR.last;let r;try{r=await api('/api/simulate',CUR)}catch(e){toast(e.detail||'Simulation failed');return}CUR.last=r;$('#submit-msg').textContent='';renderForge(r);
+ if(prev&&PAGE==='forge'&&prev.verdict!==r.verdict)toast(`Verdict changed: ${prev.verdict} → ${r.verdict}`)}
+function gauge(v,col){const R=40,C=2*Math.PI*R;return `<div class="gauge"><svg viewBox="0 0 92 92" width="92" height="92"><circle cx="46" cy="46" r="${R}" stroke="${css('--line')}" stroke-width="8" fill="none"/><circle cx="46" cy="46" r="${R}" stroke="${col}" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="${C*v/100} ${C}"/></svg><b>${Math.round(v)}</b><small>readiness</small></div>`}
+function renderForge(r){const I=r.insights||{},vc=VC()[r.verdict]||css('--ember');
+ $('#vhero').innerHTML=`<div class="verdict-hero vh-${r.verdict.split(' ')[0]}"><span class="pin">2</span>${gauge(r.readiness,vc)}<div><div class="mut small" style="text-transform:uppercase;letter-spacing:.08em;font-weight:700">Engine verdict</div><div class="vv" style="color:${vc}">${r.verdict}</div><div class="mut small">${r.blocks[0]||r.drivers[0]||''}</div></div>
+ <div class="mstats"><div>Net profit<b>${r.fmt.net_gp}</b></div><div>ROI<b>${r.roi}×</b></div><div>Incremental units<b>${num(r.incr_units)}</b></div><div>Stock-out risk<b style="color:${r.p_stockout>.2?'var(--block)':'inherit'}">${(r.p_stockout*100).toFixed(0)}%</b></div><div>Leakage<b>${r.fmt.leakage}</b></div><div>Install load<b>${r.cap_load?(r.cap_load*100).toFixed(0)+'%':'n/a'}</b></div></div></div>`;
+ const li=a=>`<ul>${a.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+ $('#f-why').innerHTML=`<h4 style="color:var(--go)">▲ Drivers</h4>${li(r.drivers)}`+(r.blocks.length?`<h4 style="color:var(--block)">✖ Blocking</h4>${li(r.blocks)}`:'')+(r.risks.length?`<h4 style="color:var(--cgo)">⚠ Risks</h4>${li(r.risks)}`:'<h4 class="mut">No operational risks flagged</h4>')+`<h4 style="color:var(--blue)">↻ What would change this</h4>${li(r.what_would_change)}`;
+ const sc=s=>s>=70?css('--go'):s>=40?css('--cgo'):css('--block');
+ $('#f-scores').innerHTML=Object.entries(r.scores).map(([k,v])=>`<div class="sbar"><div class="row"><span style="text-transform:capitalize">${k} <span class="mut small">× ${META.weights[k]}</span></span><b>${v}</b></div><div class="track"><i style="width:${v}%;background:${sc(v)}"></i></div></div>`).join('')+`<div class="mut small" style="margin-top:10px">Audience ${num(r.audience)} persuadables · reach ${num(r.reach)} · festival ×${r.fest} · intent ×${r.intent}</div>`;
+ $('#f-burn-i').textContent=I.burn||'';$('#f-front-i').textContent=I.frontier||'';$('#i-hist').textContent=I.history||'';$('#i-water').textContent=I.waterfall||'';$('#i-twins').textContent=I.twins||'';
+ const E=css('--ember'),B=css('--blue');
+ chart('c-hist',{data:{labels:r.history.weeks,datasets:[{type:'bar',label:'Units sold',data:r.history.units,backgroundColor:E+'99',borderRadius:2,yAxisID:'y'},{type:'line',label:'Web searches',data:r.history.searches,borderColor:B,pointRadius:0,tension:.3,yAxisID:'y1'}]},options:{plugins:{legend:{position:'bottom',labels:{boxWidth:10}}},scales:{y1:{position:'right',grid:{display:false}},x:{ticks:{maxTicksLimit:6},grid:{display:false}}}}});
+ chart('c-burn',{type:'line',data:{labels:r.burn.map((_,i)=>'Day '+(i+1)),datasets:[{label:'Units left',data:r.burn,borderColor:r.stockout_day?css('--block'):E,backgroundColor:(r.stockout_day?css('--block'):E)+'33',fill:true,tension:.3}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{beginAtZero:true}}}});
+ const vcm=VC();chart('c-front',{data:{labels:r.frontier.map(f=>f.offer),datasets:[{type:'bar',label:'Net profit',data:r.frontier.map(f=>f.net_gp),backgroundColor:r.frontier.map((f,i)=>(vcm[f.verdict]||E)+(i===CUR.offer_idx?'':'88')),borderColor:r.frontier.map((f,i)=>i===CUR.offer_idx?css('--txt'):'transparent'),borderWidth:2,borderRadius:5,yAxisID:'y'},{type:'line',label:'Incremental units',data:r.frontier.map(f=>f.incr_units),borderColor:B,yAxisID:'y1'}]},options:{plugins:{legend:{position:'bottom',labels:{boxWidth:10}},tooltip:{callbacks:{label:c=>c.datasetIndex?num(c.raw)+' units':inr(c.raw)}}},scales:{y:{ticks:{callback:v=>inr(v)}},y1:{position:'right',grid:{display:false}},x:{grid:{display:false}}}}});
+ const a1=r.incr_gp-r.leakage;chart('c-water',{type:'bar',data:{labels:['Incremental profit','Leakage','Comms + stock-out','Net profit'],datasets:[{data:[[0,r.incr_gp],[a1,r.incr_gp],[r.net_gp,a1],[0,r.net_gp]],backgroundColor:[css('--go'),css('--block'),css('--cgo'),E],borderRadius:5}]},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>inr(c.raw[1]-c.raw[0])}}},scales:{y:{ticks:{callback:v=>inr(v)}},x:{grid:{display:false}}}}});
+ $('#f-twins').innerHTML='<table><tr><th>Similar past campaign</th><th class="num">Predicted ROI</th><th class="num">Actual</th><th class="num">Stock-outs</th></tr>'+r.twins.map(t=>`<tr><td>${t.name}</td><td class="num">${t.pred_roi}×</td><td class="num"><b style="color:${t.actual_roi>=t.pred_roi?'var(--go)':'var(--cgo)'}">${t.actual_roi}×</b></td><td class="num">${t.stockouts}</td></tr>`).join('')+'</table>';
+ $('#submit').disabled=r.verdict==='BLOCK';$('#submit').title=r.verdict==='BLOCK'?'Blocked by guardrails: fix the plan first':''}
+$('#submit').onclick=async()=>{try{const c=await api('/api/campaigns',CUR);toast(`${c.id} created, sending to the Approval Board`);go('approve')}catch(e){$('#submit-msg').textContent=e.detail?.msg||'Error'}};
 
-function renderCourt(bl){$('#court').innerHTML=bl.length?bl.map(r=>`<div class="card"><div class="row" style="justify-content:space-between"><b>${r.offer} · ${r.product}</b>${badge('BLOCK')}</div><div class="mut">${r.segment} · ${r.city_name} · readiness ${r.readiness}</div>
- ${r.blocks.map(b=>`<div class="exhibit">Exhibit: ${b}</div>`).join('')}${r.risks.map(b=>`<div class="exhibit" style="border-color:var(--cgo);background:#e6b54a14">Risk: ${b}</div>`).join('')}
- ${r.what_would_change.map(f=>`<div class="fix">Admissible if: ${f}</div>`).join('')}<button class="btn ghost" onclick='openForge(${JSON.stringify({segment:r.segment,sku:r.sku,city:r.city,offer_idx:r.offer_idx,channel:r.channel,window:r.window})})'>Rework in Forge</button></div>`).join(''):'<div class="card">No blocked promotions for this filter.</div>'}
+/* ---------- 5 court ---------- */
+function renderCourt(bl){$('#court').innerHTML=bl.length?bl.map((r,i)=>`<div class="card">${i===0?'<span class="pin">2</span>':''}<div class="row" style="justify-content:space-between"><b>${r.offer} · ${r.product}</b>${badge('BLOCK')}</div><div class="mut small" style="margin-bottom:6px">${r.segment} · ${r.city_name} · readiness ${r.readiness}</div>
+ ${r.blocks.map(b=>`<div class="exhibit"><b>Exhibit:</b> ${b}</div>`).join('')}${r.risks.map(b=>`<div class="exhibit risk"><b>Risk:</b> ${b}</div>`).join('')}
+ ${r.what_would_change.map(f=>`<div class="fix"><b>Admissible if:</b> ${f}</div>`).join('')}<button class="btn ghost sm" style="margin-top:8px" data-rework='${JSON.stringify({segment:r.segment,sku:r.sku,city:r.city,offer_idx:r.offer_idx,channel:r.channel}).replace(/'/g,"&#39;")}'>Rework in Forge →</button></div>`).join(''):'<div class="card empty">No blocked promotions for this filter.</div>'}
+$('#court').onclick=e=>{const b=e.target.closest('[data-rework]');b&&openForge(JSON.parse(b.dataset.rework))};
 
+/* ---------- 2 map ---------- */
 async function loadMap(){const d=await api('/api/mismatch?window='+$('#win').value);$('#map-i').textContent=d.insight;
- const P=(lat,lon)=>[(lon-68)/(97-68)*380+20,(36-lat)/(36-7)*420+20];let s='<rect x="0" y="0" width="420" height="460" fill="none"/>';
- d.transfers.forEach(t=>{const [a,b]=P(...t.from_ll),[c,e]=P(...t.to_ll);s+=`<path d="M${a},${b} Q${(a+c)/2+30},${(b+e)/2-40} ${c},${e}" stroke="#ff7a3d" stroke-width="1.5" fill="none" opacity=".75" stroke-dasharray="4 3"><animate attributeName="stroke-dashoffset" from="14" to="0" dur="1s" repeatCount="indefinite"/></path>`});
- d.cities.forEach(c=>{const [x,y]=P(c.lat,c.lon);s+=`<circle cx="${x}" cy="${y}" r="${6+c.short*2.5}" fill="#ef5a5a55" stroke="#ef5a5a"/><circle cx="${x+4}" cy="${y+4}" r="${3+c.excess*1.8}" fill="#5aa2ef44" stroke="#5aa2ef"/><text x="${x+12}" y="${y-8}">${c.city} (${c.short}↓ ${c.excess}↑)</text>`});
+ const P=(lat,lon)=>[(lon-68)/(97-68)*380+30,(36-lat)/(36-7)*420+25];const E=css('--ember'),R=css('--block'),B=css('--blue');let s='';
+ d.transfers.forEach(t=>{const [a,b]=P(...t.from_ll),[c,e]=P(...t.to_ll);s+=`<path d="M${a},${b} Q${(a+c)/2+30},${(b+e)/2-40} ${c},${e}" stroke="${E}" stroke-width="1.8" fill="none" opacity=".8" stroke-dasharray="5 4"><animate attributeName="stroke-dashoffset" from="18" to="0" dur="1s" repeatCount="indefinite"/></path>`});
+ d.cities.forEach(c=>{const [x,y]=P(c.lat,c.lon);s+=`<g><title>${c.city}: ${c.short} short SKUs, ${c.excess} excess SKUs, ${c.stores} stores</title><circle cx="${x}" cy="${y}" r="${5+Math.sqrt(c.short)*3.2}" fill="${R}33" stroke="${R}" stroke-width="1.5"/><circle cx="${x+4}" cy="${y+4}" r="${3+Math.sqrt(c.excess)*2.6}" fill="${B}33" stroke="${B}"/><circle cx="${x}" cy="${y}" r="2.5" fill="${css('--txt')}"/><text x="${x+12}" y="${y-8}" font-weight="600">${c.city}</text><text x="${x+12}" y="${y+5}" style="fill:${css('--mut')};font-size:10px">${c.short} short · ${c.excess} excess</text></g>`});
  $('#map').innerHTML=s;
- $('#xfer').innerHTML='<tr><th>Product</th><th>From → To</th><th>Qty</th></tr>'+d.transfers.map(t=>`<tr><td>${t.product}</td><td>${t.from} → ${t.to}</td><td>${t.qty}</td></tr>`).join('');
- $('#gaps').innerHTML='<tr><th>City</th><th>Product</th><th>Demand/day</th><th>Stock</th><th>Cover</th></tr>'+d.rows.filter(r=>r.status==='SHORT').sort((a,b)=>a.cover_days-b.cover_days).slice(0,10).map(r=>`<tr><td>${r.city_name}</td><td>${r.product}</td><td>${r.demand_per_day}</td><td>${r.stock}</td><td style="color:var(--block)">${r.cover_days}d</td></tr>`).join('')}
+ $('#xfer').innerHTML=d.transfers.length?'<tr><th>Product</th><th>Route</th><th class="num">Units</th></tr>'+d.transfers.map(t=>`<tr><td>${t.product}</td><td>${t.from} <span style="color:var(--ember)">→</span> ${t.to}</td><td class="num"><b>${num(t.qty)}</b></td></tr>`).join(''):'<tr><td class="mut">No transfers needed.</td></tr>';
+ $('#gaps').innerHTML='<tr><th>City</th><th>Product</th><th class="num">Demand/day</th><th class="num">Stock</th><th class="num">Cover</th></tr>'+d.rows.filter(r=>r.status==='SHORT').sort((a,b)=>a.cover_days-b.cover_days).slice(0,10).map(r=>`<tr><td>${r.city_name}</td><td>${r.product}</td><td class="num">${r.demand_per_day}</td><td class="num">${num(r.stock)}</td><td class="num" style="color:var(--block);font-weight:700">${r.cover_days}d</td></tr>`).join('')}
 
-async function loadBoard(){const cs=await api('/api/campaigns');if(!cs.length){$('#board').innerHTML='<div class="card">No campaigns yet. Submit one from the Promotion Forge.</div>';return}
- const L={marketing:['Marketing','Audience, channel, fatigue',r=>[`Reach ${r.reach.toLocaleString('en-IN')} via ${r.channel}`,`Incremental units ${r.incr_units}`,`Fatigue: ${r.fatigue} promos / 14d`,`Leakage ${(r.leak_share*100).toFixed(0)}%`]],
-  merchandising:['Merchandising','Margin, sell-through, leakage',r=>[`Post-discount margin ${(r.gp_margin*100).toFixed(1)}%`,`Net GP ${r.fmt.net_gp} · ROI ${r.roi}×`,`Stock cover ${r.cover_days} days`,`Discount spend ${r.fmt.discount_spend}`]],
-  store_ops:['Store Ops','Stock, installs, staff load',r=>[`Available ${Math.round(r.available)} vs need ${Math.round(r.organic_units+r.promo_units)}`,`Stock-out prob. ${(r.p_stockout*100).toFixed(0)}%${r.stockout_day?' (day '+r.stockout_day+')':''}`,`Install load ${(r.cap_load*100).toFixed(0)}%`,`Inbound POs: ${r.inbound.length?r.inbound.map(i=>i.qty+' on day '+i.day).join(', '):'none'}`]]};
- $('#board').innerHTML=cs.slice().reverse().map(c=>{const r=c.rec;return `<div class="card" style="margin-bottom:14px"><div class="row" style="justify-content:space-between"><div><b>${c.id}</b> · <span class="badge ${c.status==='Approved'||c.status==='Completed'?'GO':c.status==='Rejected'?'BLOCK':'CONDITIONAL'}">${c.status}</span></div><div>Shared readiness <span class="big" style="font-size:26px;color:var(--ember)">${r.readiness}</span></div></div>
- <div style="margin:8px 0 12px">${r.sentence}</div><div class="row" style="align-items:stretch">${Object.entries(L).map(([k,[n,d,f]])=>`<div class="lens"><b>${n}</b> <span class="mut">· ${d}</span><ul>${f(r).map(x=>`<li>${x}</li>`).join('')}</ul>
- <div class="row">${c.seals[k]?`<span class="seal" style="color:${c.seals[k]==='approve'?'var(--go)':'var(--block)'}">${c.seals[k]==='approve'?'✔ SEALED':'✖ REJECTED'}</span>`:`<button class="btn green" onclick="seal('${c.id}','${k}','approve')">Approve</button><button class="btn red" onclick="seal('${c.id}','${k}','reject')">Reject</button>`}</div></div>`).join('')}</div>
- ${c.status==='Approved'?`<div class="row" style="margin-top:12px"><button class="btn" onclick="warp('${c.id}')">⏩ Time Warp: run campaign and learn</button></div>`:''}
- ${c.outcome?`<div class="fix" style="margin-top:12px"><b>Outcome:</b> predicted ${c.outcome.pred_incr_units} incremental units, actual ${c.outcome.actual_incr_units} (${c.outcome.error_pct}%). Net GP predicted ${inr(c.outcome.pred_net_gp)} vs actual ${inr(c.outcome.actual_net_gp)}. ${c.outcome.stocked_out?'Stock-out occurred.':'No stock-out.'}<br><b>Learning:</b> ${c.outcome.lesson}</div>`:''}</div>`}).join('')}
-async function seal(id,lens,decision){await api(`/api/campaigns/${id}/seal`,{lens,decision});loadBoard()}
-async function warp(id){await api(`/api/campaigns/${id}/timewarp`,{});loadBoard()}
+/* ---------- 6 board ---------- */
+const LENS={marketing:['Marketing','Audience, channel, fatigue',r=>[`Reach ${num(r.reach)} via ${r.channel}`,`Incremental units ${num(r.incr_units)}`,`Fatigue: ${r.fatigue} promos / 60d`,`Leakage ${(r.leak_share*100).toFixed(0)}%`]],
+ merchandising:['Merchandising','Margin, sell-through, leakage',r=>[`Post-discount margin ${(r.gp_margin*100).toFixed(1)}%`,`Net profit ${r.fmt.net_gp} · ROI ${r.roi}×`,`Stock cover ${r.cover_days} days`,`Discount spend ${r.fmt.discount_spend}`]],
+ store_ops:['Store Ops','Stock, installs, staff load',r=>[`Available ${num(r.available)} vs need ${num(r.organic_units+r.promo_units)}`,`Stock-out prob. ${(r.p_stockout*100).toFixed(0)}%${r.stockout_day?' (day '+r.stockout_day+')':''}`,`Install load ${(r.cap_load*100).toFixed(0)}%`,`Inbound POs: ${r.inbound.length?r.inbound.map(i=>num(i.qty)+' on day '+i.day).join(', '):'none'}`]]};
+async function loadBoard(){const cs=await api('/api/campaigns');
+ if(!cs.length){$('#board').innerHTML='<div class="card empty"><div style="font-size:1.1rem;font-weight:700;color:var(--txt)">No campaigns submitted yet</div><div>Build one in the Promotion Forge and submit it for sign-off.</div><button class="btn" data-go="forge">Open the Forge →</button></div>';return}
+ const ST=['Pending sign-off','Approved','','Completed'];
+ $('#board').innerHTML=cs.slice().reverse().map((c,ci)=>{const r=c.rec,si=c.status==='Rejected'?-1:ST.indexOf(c.status);
+ return `<div class="card" style="margin-bottom:16px">${ci===0?'<span class="pin">1</span>':''}<div class="row" style="justify-content:space-between"><div class="row"><b style="font-size:1.1rem">${c.id}</b><span class="badge ${c.status==='Approved'||c.status==='Completed'?'GO':c.status==='Rejected'?'BLOCK':'CONDITIONAL'}">${c.status}</span></div>
+ <div class="row">${gauge(r.readiness,VC()[r.verdict]||css('--ember'))}</div></div>
+ <div style="margin:4px 0 10px;font-size:1.02rem">${r.sentence}</div>
+ <div class="timeline">${['Submitted','Three-lens sign-off','Time Warp','Learned'].map((t,i)=>`<span class="${c.status==='Rejected'?(i===0?'d':''):i<=si?'d':i===si+1?'c':''}">${t}</span>`).join('')}</div>
+ <div class="lenses">${Object.entries(LENS).map(([k,[n,d,f]])=>`<div class="lens ${c.seals[k]==='approve'?'ok':c.seals[k]==='reject'?'no':''}"><div><b>${n}</b> <span class="mut small">· ${d}</span></div><ul>${f(r).map(x=>`<li>${x}</li>`).join('')}</ul>
+ <div class="row">${c.seals[k]?`<span class="stamp" style="color:${c.seals[k]==='approve'?'var(--go)':'var(--block)'}">${c.seals[k]==='approve'?'✔ APPROVED':'✖ REJECTED'}</span>`:(c.status==='Rejected'?'<span class="mut small">Not required</span>':`<button class="btn green sm" data-seal="${c.id}|${k}|approve">Approve</button><button class="btn red sm" data-seal="${c.id}|${k}|reject">Reject</button>`)}</div></div>`).join('')}</div>
+ ${c.status==='Approved'?`<div class="row" style="margin-top:14px"><button class="btn" data-warp="${c.id}">⏩ Time Warp: run the campaign and learn</button><span class="mut small">Simulates the window in the ground-truth world</span></div>`:''}
+ ${c.outcome?(()=>{const o=c.outcome;return `<div class="fix" style="margin-top:14px"><b>Outcome after Time Warp</b><div class="outcome">
+  <div class="kpi"><div class="l">Incremental units</div><div class="v" style="font-size:1.3rem">${num(o.actual_incr_units)}</div><div class="s">predicted ${num(o.pred_incr_units)} (${o.error_pct>0?'+':''}${o.error_pct}%)</div></div>
+  <div class="kpi"><div class="l">Net profit</div><div class="v" style="font-size:1.3rem">${inr(o.actual_net_gp)}</div><div class="s">predicted ${inr(o.pred_net_gp)}</div></div>
+  <div class="kpi"><div class="l">Stock-out</div><div class="v" style="font-size:1.3rem;color:${o.stocked_out?'var(--block)':'var(--go)'}">${o.stocked_out?'Yes':'No'}</div></div></div>
+  <div style="margin-top:8px"><b>What the engine learned:</b> ${o.lesson}</div><button class="btn ghost sm" style="margin-top:8px" data-go="memory">See it in Campaign Memory →</button></div>`})():''}</div>`}).join('')}
+$('#board').onclick=async e=>{const s=e.target.closest('[data-seal]'),w=e.target.closest('[data-warp]');
+ if(s){const [id,lens,decision]=s.dataset.seal.split('|');await api(`/api/campaigns/${id}/seal`,{lens,decision});loadBoard()}
+ if(w){w.disabled=true;w.textContent='⏩ Fast-forwarding…';await api(`/api/campaigns/${w.dataset.warp}/timewarp`,{});loadBoard()}};
 
-async function loadMem(){const M=await api('/api/memory'),m=M.rows;$('#mem-i').textContent=`${M.calibration.n} completed campaigns. Leave-one-out ROI forecast: mean abs. error ${M.calibration.mae}, bias ${M.calibration.bias}. Time Warp outcomes use this error band.`;
- chart('c-cal',{type:'scatter',data:{datasets:[{label:'Campaigns',data:m.map(c=>({x:c.pred_roi,y:c.actual_roi})),backgroundColor:'#ff7a3d',pointRadius:6},{type:'line',label:'Perfect calibration',data:[{x:-2,y:-2},{x:4,y:4}],borderColor:'#5aa2ef',borderDash:[5,5],pointRadius:0}]},options:{scales:{x:{title:{display:true,text:'Predicted ROI'}},y:{title:{display:true,text:'Actual ROI'}}}}});
- $('#mem').innerHTML='<tr><th>Campaign</th><th>Pred ROI</th><th>Actual</th><th>Stock-outs</th><th>Leakage</th></tr>'+m.slice(0,40).map(c=>`<tr><td>${c.name}<div class=mut>${c.start} · ${c.objective}</div></td><td>${c.pred_roi}×</td><td>${c.actual_roi}×</td><td>${c.stockouts}</td><td>${c.leakage_pct}%</td></tr>`).join('')}
-async function loadAud(){const d=await api('/api/audiences');const mc=d.model;
- $('#aud-i').textContent=`${d.dnc.toLocaleString('en-IN')} customers excluded (DND, unsubscribed or no consent). The uplift model targets only persuadables, which cuts discount leakage.`;
- $('#aud').innerHTML='<tr><th>Segment</th><th>Size</th><th>Persuadable</th><th>Uplift</th><th>Fatigue</th><th>Top affinity</th></tr>'+d.segments.map(s=>`<tr><td><b>${s.segment}</b></td><td>${s.size.toLocaleString('en-IN')}</td><td>${(s.persuadable*100).toFixed(0)}%</td><td>+${(s.lift*100).toFixed(2)} pts</td><td>${s.fatigue}</td><td class=mut>${s.top_categories.join(', ')}</td></tr>`).join('');
- chart('c-aud',{type:'bar',data:{labels:d.segments.map(s=>s.segment),datasets:[{label:'With offer',data:d.segments.map(s=>s.treated*100),backgroundColor:'#ff7a3d'},{label:'Without (control)',data:d.segments.map(s=>s.control*100),backgroundColor:'#5aa2ef'}]},options:{scales:{y:{title:{display:true,text:'30-day conversion %'}}}}});
- $('#model').innerHTML=`<div><b>${mc.model}</b></div><div class=mut>Trained on ${mc.train_rows.toLocaleString('en-IN')} campaign exposures (${mc.treated.toLocaleString('en-IN')} treated / ${mc.control.toLocaleString('en-IN')} holdout)</div><div class=mut>Features: ${mc.features.join(', ')}</div>
- <div class="grid g4" style="margin-top:10px"><div class="kpi"><div class=l>Observed uplift, top 30%</div><div class=v style="color:var(--go)">+${mc.obs_uplift_top30_pts} pts</div></div><div class="kpi"><div class=l>Observed uplift, rest</div><div class=v>+${mc.obs_uplift_rest_pts} pts</div></div><div class="kpi"><div class=l>All customers</div><div class=v>+${mc.obs_uplift_all_pts} pts</div></div></div>
- <div class=insight>Targeting the model's top 30% gives ${(mc.obs_uplift_top30_pts/Math.max(mc.obs_uplift_all_pts,0.01)).toFixed(1)}× the incremental conversion of a blanket campaign.</div>`}
+/* ---------- 7 memory ---------- */
+async function loadMem(){const M=await api('/api/memory'),m=M.rows;$('#mem-i').textContent=M.insight;
+ const xs=m.flatMap(c=>[c.pred_roi,c.actual_roi]),lo=Math.floor(Math.min(...xs)),hi=Math.ceil(Math.max(...xs));
+ chart('c-cal',{type:'scatter',data:{datasets:[{label:'Past campaign',data:m.map(c=>({x:c.pred_roi,y:c.actual_roi,n:c.name})),backgroundColor:css('--ember')+'bb',pointRadius:5,pointHoverRadius:8},{type:'line',label:'Perfect forecast',data:[{x:lo,y:lo},{x:hi,y:hi}],borderColor:css('--blue'),borderDash:[6,5],pointRadius:0}]},options:{plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>c.raw.n?`${c.raw.n}: predicted ${c.raw.x}×, actual ${c.raw.y}×`:''}}},scales:{x:{title:{display:true,text:'Predicted ROI'}},y:{title:{display:true,text:'Actual ROI'}}}}});
+ $('#mem').innerHTML='<tr><th>Campaign</th><th class="num">Pred.</th><th class="num">Actual</th><th class="num">Stock-outs</th><th class="num">Leakage</th></tr>'+m.slice(0,60).map(c=>`<tr><td>${c.name}<div class="mut small">${c.start} · ${c.objective}</div></td><td class="num">${c.pred_roi}×</td><td class="num"><b>${c.actual_roi}×</b></td><td class="num">${c.stockouts}</td><td class="num">${c.leakage_pct}%</td></tr>`).join('')}
+
+/* ---------- 3 audience ---------- */
+async function loadAud(){const d=await api('/api/audiences'),mc=d.model;
+ $('#aud-i').textContent=`${num(d.dnc)} customers excluded (DND, unsubscribed or no consent). The uplift model targets only persuadables, which cuts discount leakage.`;$('#aud-ci').textContent=d.chart_insight||'';
+ const mx=Math.max(...d.segments.map(s=>s.lift));
+ $('#aud').innerHTML='<tr><th>Segment</th><th class="num">Size</th><th class="num">Persuadable</th><th class="num">Uplift</th><th class="num">Fatigue</th></tr>'+d.segments.map(s=>`<tr><td><b>${s.segment}</b><div class="mut small">${s.top_categories.join(' · ')}</div></td><td class="num">${num(s.size)}</td><td class="num">${(s.persuadable*100).toFixed(0)}%</td><td class="num" style="color:${s.lift===mx?'var(--go)':'inherit'}"><b>+${(s.lift*100).toFixed(2)}</b> pts</td><td class="num">${s.fatigue}</td></tr>`).join('');
+ chart('c-aud',{type:'bar',data:{labels:d.segments.map(s=>s.segment),datasets:[{label:'With offer',data:d.segments.map(s=>s.treated*100),backgroundColor:css('--ember'),borderRadius:4},{label:'Without (holdout)',data:d.segments.map(s=>s.control*100),backgroundColor:css('--blue'),borderRadius:4}]},options:{plugins:{legend:{position:'bottom',labels:{boxWidth:10}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.raw.toFixed(2)}%`}}},scales:{y:{title:{display:true,text:'30-day conversion %'}},x:{grid:{display:false}}}}});
+ const ratio=(mc.obs_uplift_top30_pts/Math.max(mc.obs_uplift_all_pts,0.01)).toFixed(1);
+ $('#model').innerHTML=`<div><b>${mc.model}</b></div><div class="mut small">Trained on ${num(mc.train_rows)} campaign exposures (${num(mc.treated)} treated / ${num(mc.control)} holdout)</div><div class="mut small">Features: ${mc.features.join(', ')}</div>
+ <div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:12px"><div class="kpi"><div class="l">Model's top 30%</div><div class="v" style="color:var(--go)">+${mc.obs_uplift_top30_pts}</div><div class="s">pts uplift</div></div><div class="kpi"><div class="l">Everyone else</div><div class="v">+${mc.obs_uplift_rest_pts}</div><div class="s">pts uplift</div></div><div class="kpi"><div class="l">Blanket campaign</div><div class="v">+${mc.obs_uplift_all_pts}</div><div class="s">pts uplift</div></div></div>
+ <div class="insight" style="margin-top:10px">Targeting the model's top 30% gives ${ratio}× the incremental conversion of a blanket campaign.</div>`}
+
 init();
 </script></body></html>

@@ -6,3 +6,4 @@
 - Cameras sit in GAM ("Gaming & imaging"); monitors/printers omitted to respect PLAN's 12 categories and price bands.
 - Web data is `web_daily` (customer-day-category aggregates, PLAN §6.6), not raw event rows.
 - converted_7d/30d and repeat_180d are NULL when the window extends past 2026-09-30.
+- UI is ordered as a 7-step story (spot → stock → audience → forge → guardrails → approve → learn) with a presenter mode; chart insight sentences are served by the API (`insights` fields).
