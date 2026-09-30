@@ -244,6 +244,26 @@ select.pick{border-radius:8px;padding:6px 10px}
 .pill{font-size:.74rem;padding:3px 9px}
 details.more{border-radius:12px;box-shadow:var(--shadow)}
 .section{margin-top:32px}
+/* ---------- motion & wow ---------- */
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.pcard,.segcard,.bcard,#opps .note,.team,.pipe>div{animation:rise .45s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0)*55ms)}
+.meter i,.conf .track i,.bl .track i,.cmp .track i,.meter2 i,.ck .t i{transition:width .7s cubic-bezier(.2,.7,.2,1)}
+@keyframes flash{0%{box-shadow:0 0 0 0 var(--c)}100%{box-shadow:0 0 0 14px transparent}}
+.panel.flash{animation:flash .9s ease-out}
+.panel .v{transition:color .3s}
+.slider{margin-top:10px}
+.slider input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;padding:0;background:none;border:0;box-shadow:none}
+.slider .ticks{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-top:2px;gap:4px}
+.slider .ticks span{flex:1;text-align:center;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.slider .ticks span:first-child{text-align:left}.slider .ticks span:last-child{text-align:right}
+.slider .ticks span.on{color:var(--accent);font-weight:700}
+.sim{margin-top:16px;padding:18px 20px;border:1px dashed var(--accent-line);border-radius:12px;background:var(--accent-soft)}
+.sim .days{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin:12px 0 6px;background:none;color:inherit;padding:0}
+.sim .days i{height:28px;border-radius:6px;background:var(--surface);border:1px solid var(--accent-line);transition:background .2s}
+.sim .days i.on{background:var(--accent);border-color:var(--accent)}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:.75rem;font-weight:600;color:var(--accent)}
+.live::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent);animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.25}}
+@media(prefers-reduced-motion:reduce){.pcard,.segcard,.bcard,#opps .note,.team,.pipe>div{animation:none}}
 @media(max-width:960px){.pipe>div+div{border-left:0;border-top:1px solid var(--border)}.stepper{padding-left:12px}}
 @media(max-width:960px){.g2,.g3,.pcards,.teams,.vs{grid-template-columns:1fr}.checks{grid-template-columns:repeat(2,1fr)}.decision{grid-template-columns:1fr}.decision .r{border-left:0;border-top:1px solid var(--border)}
  .howto{grid-template-columns:1fr}.howto>div+div{border-left:0;border-top:1px solid var(--border)}.pipe{grid-template-columns:1fr}.pipe>div::after{display:none}h1{font-size:1.6rem}main{padding:20px 16px 60px}.hdr-row,.stepper{padding-left:16px;padding-right:16px}.brand span{display:none}}
@@ -381,6 +401,10 @@ const icon=(k,s=18)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="
 const V={GO:['Go','Run it. It makes money and stock will last.','--good'],CONDITIONAL:['Go, with a change','Run it with the change suggested below.','--warn'],HOLD:['Wait','The numbers are borderline. Try a different offer or city.','--muted'],BLOCK:["Don't run","It breaks a safety rule. See the fix below.",'--bad']};
 const vk=v=>{const k=String(v||'HOLD').split(' ')[0];return V[k]?k:'HOLD'};
 const pill=v=>`<span class="pill p-${vk(v)}">${V[vk(v)][0]}</span>`;
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function countUp(root){(root||document).querySelectorAll('[data-count]').forEach(el=>{const to=fin(el.dataset.count),f=el.dataset.fmt==='inr'?inr:num;if(RM||!to){el.textContent=f(to);return}
+ const t0=performance.now(),d=800;const step=t=>{const k=Math.min(1,(t-t0)/d),e=1-Math.pow(1-k,3);el.textContent=f(to*e);if(k<1)requestAnimationFrame(step)};requestAnimationFrame(step);setTimeout(()=>el.textContent=f(to),d+150)})}
+const stagger=root=>[...root.children].forEach((c,i)=>c.style.setProperty('--i',i));
 const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2600)};
 const charts={};function chart(id,cfg){hasData(id);charts[id]?.destroy();cfg.options={maintainAspectRatio:false,animation:matchMedia('(prefers-reduced-motion: reduce)').matches?false:{duration:400},...cfg.options};charts[id]=new Chart($('#'+id),cfg)}
 Chart.defaults.font.family='Inter, system-ui, sans-serif';
@@ -434,16 +458,17 @@ function renderPicks(d){const list=SHOWALL?d.top:d.top.slice(0,6);
  $('#picks').innerHTML=list.length?list.map((r,i)=>`<div class="pcard" data-i="${i}"><div class="row" style="justify-content:space-between"><span class="rank">#${i+1}</span>${pill(r.verdict)}</div>
   <div class="prod">${esc(r.product)}</div><span class="offer">${esc(r.offer)}</span>
   <div class="meta"><span>${icon('users',15)}${esc(r.segment)}</span><span>${icon('pin',15)}${esc(r.city_name)}</span></div>
-  <div class="foot"><div><div class="money-l">Extra profit</div><div class="money" style="color:${fin(r.net_gp)<0?'var(--bad)':'var(--good)'}">${r.fmt?.net_gp??inr(r.net_gp)}</div></div><div class="conf"><div class="money-l">Confidence ${Math.round(r.readiness)}</div><div class="track"><i style="width:${r.readiness}%"></i></div></div></div></div>`).join('')
+  <div class="foot"><div><div class="money-l">Extra profit</div><div class="money" style="color:${fin(r.net_gp)<0?'var(--bad)':'var(--good)'}" data-count="${fin(r.net_gp)}" data-fmt="inr">${r.fmt?.net_gp??inr(r.net_gp)}</div></div><div class="conf"><div class="money-l">Confidence ${Math.round(r.readiness)}</div><div class="track"><i style="width:${r.readiness}%"></i></div></div></div></div>`).join('')
   :'<div class="card empty" style="grid-column:1/-1"><b>No safe promotions for this filter</b>Try another goal or city, or see what was blocked.<div style="margin-top:12px"><button class="btn ghost sm" data-go="court">See blocked promotions</button></div></div>';
+ countUp($('#picks'));stagger($('#picks'));
  $('#picks').onclick=e=>{const c=e.target.closest('.pcard');c&&openForge(list[c.dataset.i])}}
 function renderMission(d){const k=d.kpis,c=k.counts,I=d.insights||{},safe=c.GO+c['CONDITIONAL GO'];
  $('#m-insight').textContent=d.insight||'No results for this filter.';
- $('#pipe').innerHTML=[[k.candidates,'promotion ideas checked',100],[safe,'are safe to run',safe/Math.max(k.candidates,1)*100],[d.top.length,'picked for you',Math.max(2,d.top.length/Math.max(k.candidates,1)*100)]].map(([v,l,p])=>`<div><div class="v">${num(v)}</div><div class="l">${l}</div><div class="meter"><i style="width:${p}%"></i></div></div>`).join('');
- renderPicks(d);
+ $('#pipe').innerHTML=[[k.candidates,'promotion ideas checked',100],[safe,'are safe to run',safe/Math.max(k.candidates,1)*100],[d.top.length,'picked for you',Math.max(2,d.top.length/Math.max(k.candidates,1)*100)]].map(([v,l,p])=>`<div><div class="v" data-count="${v}">0</div><div class="l">${l}</div><div class="meter"><i style="width:${p}%"></i></div></div>`).join('');
+ countUp($('#pipe'));stagger($('#pipe'));renderPicks(d);
  const T={'Too much stock':['t-info','box'],'Running out':['t-bad','alert'],'Rising interest':['t-good','up'],'Festival':['t-warn','cal'],'Lapsing customers':['t-warn','users']};
  const ops=[...new Map(d.opportunities.map(o=>[o.type,o])).values()];d.opportunities.forEach(o=>ops.length<6&&!ops.includes(o)&&ops.push(o));
- $('#opps').innerHTML=ops.slice(0,6).map(o=>{const [t,ic]=T[o.type]||['t-info','bulb'];return `<div class="note ${t}"><span class="ic">${icon(ic,16)}</span><div><b>${esc(o.type)}</b>${esc(o.text)}</div></div>`}).join('')||'<p class="muted small">Nothing unusual right now.</p>';
+ $('#opps').innerHTML=ops.slice(0,6).map(o=>{const [t,ic]=T[o.type]||['t-info','bulb'];return `<div class="note ${t}" style="--i:${0}"><span class="ic">${icon(ic,16)}</span><div><b>${esc(o.type)}</b>${esc(o.text)}</div></div>`}).join('')||'<p class="muted small">Nothing unusual right now.</p>';
  $('#i-block').textContent=I.block||'';$('#i-cat').textContent=I.cat||'';
  const br=Object.entries(d.block_reasons||{}).sort((a,b)=>b[1]-a[1]),bm=Math.max(1,...br.map(x=>x[1]));
  $('#block-bars').innerHTML=br.map(([l,v])=>barRow(l,num(v)+' ideas',v/bm*100,'var(--bad)')).join('')||'<span class="muted small">Nothing blocked.</span>';
@@ -455,15 +480,18 @@ function renderMission(d){const k=d.kpis,c=k.counts,I=d.insights||{},safe=c.GO+c
 const sel=(id,opts,val)=>`<select id="${id}">${opts.map(([v,l])=>`<option value="${v}" ${v==val?'selected':''}>${l}</option>`).join('')}</select>`;
 function openForge(r,silent){CUR={segment:r.segment,sku:r.sku,city:r.city,offer_idx:r.offer_idx,channel:r.channel,cap:r.cap||null,window:$('#win').value};renderSentence();simulate();if(!silent)go('forge')}
 function renderSentence(){const c=CUR,F=(l,h,w,hint)=>`<div class="field ${w?'wide':''}"><label>${l}</label>${h}${hint?`<span class="hint">${hint}</span>`:''}</div>`;
- $('#fields').innerHTML=F('Product',sel('s-sku',META.products.map(p=>[p.sku,esc(p.name)]),c.sku),1)+F('Discount',sel('s-offer',META.offers.map((o,i)=>[i,esc(o)]),c.offer_idx))+F('Customer group',sel('s-seg',Object.keys(META.segments).map(k=>[k,esc(k)]),c.segment))
+ $('#fields').innerHTML=F('Product',sel('s-sku',META.products.map(p=>[p.sku,esc(p.name)]),c.sku),1)+F('Discount',sel('s-offer',META.offers.map((o,i)=>[i,esc(o)]),c.offer_idx)+`<div class="slider"><input type="range" id="s-offer-r" min="0" max="${META.offers.length-1}" step="1" value="${c.offer_idx}" aria-label="Drag to compare discounts"><div class="ticks">${META.offers.map((o,i)=>`<span data-o="${i}" class="${i==c.offer_idx?'on':''}" title="${esc(o)}">${esc(o.replace(' + free installation','+install').replace('Flat ',''))}</span>`).join('')}</div></div>`,0,'<span class="live">Drag the slider: decision updates live</span>')+F('Customer group',sel('s-seg',Object.keys(META.segments).map(k=>[k,esc(k)]),c.segment))
   +F('City',sel('s-city',META.cities.map(x=>[x.code,esc(x.name)]),c.city))+F('Sent by',sel('s-ch',META.channels.map(x=>[x,esc(x)]),c.channel))
   +F('Season',`<div class="fixed">${esc(META.windows[c.window].name)}</div>`,0,'Change it at the top of the page')+F('Unit limit',`<input id="s-cap" type="number" min="1" placeholder="No limit" value="${c.cap??''}">`,0,'Optional');
  renderSummary();
- $('#fields').onchange=()=>{Object.assign(CUR,{offer_idx:+$('#s-offer').value,segment:$('#s-seg').value,sku:$('#s-sku').value,city:$('#s-city').value,channel:$('#s-ch').value,cap:+$('#s-cap').value>0?Math.round(+$('#s-cap').value):null});if($('#s-cap').value&&!(+$('#s-cap').value>0)){$('#s-cap').value='';toast('Limit must be a positive number, so it was removed')}renderSummary();simulate()}}
+ let slT;const slide=v=>{$('#s-offer').value=v;$('#s-offer-r').value=v;$$('#fields .ticks span').forEach(t=>t.classList.toggle('on',t.dataset.o==v));clearTimeout(slT);slT=setTimeout(()=>$('#fields').onchange(),120)};
+ $('#s-offer-r').oninput=e=>slide(e.target.value);$('#fields .ticks').onclick=e=>{const t=e.target.closest('[data-o]');t&&slide(t.dataset.o)};
+ $('#fields').onchange=e=>{if(e?.target?.id==='s-offer-r')return;if($('#s-offer-r')){$('#s-offer-r').value=$('#s-offer').value;$$('#fields .ticks span').forEach(t=>t.classList.toggle('on',t.dataset.o==$('#s-offer').value))}Object.assign(CUR,{offer_idx:+$('#s-offer').value,segment:$('#s-seg').value,sku:$('#s-sku').value,city:$('#s-city').value,channel:$('#s-ch').value,cap:+$('#s-cap').value>0?Math.round(+$('#s-cap').value):null});if($('#s-cap').value&&!(+$('#s-cap').value>0)){$('#s-cap').value='';toast('Limit must be a positive number, so it was removed')}renderSummary();simulate()}}
 function renderSummary(){const c=CUR,o=$('#s-offer'),p=$('#s-sku'),g=$('#s-city');$('#summary').innerHTML=`<b>In short:</b> ${esc(o.options[o.selectedIndex].text)} on <b>${esc(p.options[p.selectedIndex].text)}</b> for ${esc(c.segment)} in ${esc(g.options[g.selectedIndex].text)}, via ${esc(c.channel)}${c.cap?`, up to ${num(c.cap)} units`:''}.`}
 async function simulate(){const prev=CUR.last,ok=latest('sim');$('#submit')&&($('#submit').disabled=true);$('#panel').style.opacity=.55;let r;
  try{r=await api('/api/simulate',{...CUR,last:undefined})}catch(e){if(ok()){$('#panel').style.opacity=1;showErr($('#panel'),e,simulate)}return}
  if(!ok())return;$('#panel').style.opacity=1;r.drivers=r.drivers||[];r.risks=r.risks||[];r.blocks=r.blocks||[];r.what_would_change=r.what_would_change||[];r.burn=r.burn||[];r.frontier=r.frontier||[];r.twins=r.twins||[];r.history=r.history||{weeks:[],units:[]};r.scores=r.scores||{};CUR.last=r;renderForge(r);
+ if(prev&&PAGE==='forge'&&prev.verdict!==r.verdict&&!RM){const pn=$('#panel');pn.classList.remove('flash');void pn.offsetWidth;pn.classList.add('flash')}
  if(prev&&PAGE==='forge'&&prev.verdict!==r.verdict)toast(`Decision changed: ${V[vk(prev.verdict)][0]} → ${V[vk(r.verdict)][0]}`)}
 function renderForge(r){const I=r.insights||{},[vl,vd,vc]=V[vk(r.verdict)];
  const CK=[['profit','Makes money'],['stock','Stock will last'],['uplift','Customers respond'],['ops','Stores can cope'],['fatigue','Not over-messaged']],rd=Math.round(fin(r.readiness)),blocked=vk(r.verdict)==='BLOCK';
@@ -496,6 +524,7 @@ function renderCourt(bl){$('#court').innerHTML=bl.length?bl.map(r=>`<div class="
  ${(r.blocks||[]).map(b=>`<div class="box bad">${icon('x',16)}<span>${esc(b)}</span></div>`).join('')}
  ${(r.what_would_change||[]).slice(0,2).map(f=>`<div class="box fix">${icon('wrench',16)}<span>${esc(f)}</span></div>`).join('')}
  <button class="btn ghost sm" style="align-self:flex-start;margin-top:auto" data-rework="${esc(JSON.stringify({segment:r.segment,sku:r.sku,city:r.city,offer_idx:r.offer_idx,channel:r.channel}))}">Try the fix ${icon('arrow',15)}</button></div>`).join(''):'<div class="card empty" style="grid-column:1/-1"><b>Nothing blocked</b>Every idea for this filter passed the safety rules.</div>'}
+new MutationObserver(()=>stagger($('#court'))).observe($('#court'),{childList:true});
 $('#court').onclick=e=>{const b=e.target.closest('[data-rework]');b&&openForge(JSON.parse(b.dataset.rework))};
 
 /* 2 stock */
@@ -503,7 +532,7 @@ async function loadMap(){const ok=latest('map');let d;try{d=await api('/api/mism
  d.rows=d.rows||[];d.transfers=d.transfers||[];d.cities=d.cities||[];$('#map-i').textContent=d.insight||'';
  const P=(lat,lon)=>[(lon-68)/(97-68)*380+30,(36-lat)/(36-7)*420+25],A=css('--accent'),R=css('--bad'),B=css('--info');let s='';
  d.transfers.forEach(t=>{const [a,b]=P(...t.from_ll),[c,e]=P(...t.to_ll);s+=`<path d="M${a},${b} Q${(a+c)/2+30},${(b+e)/2-40} ${c},${e}" stroke="${A}" stroke-width="2" fill="none" stroke-dasharray="5 4" opacity=".85"><animate attributeName="stroke-dashoffset" from="18" to="0" dur="1.2s" repeatCount="indefinite"/></path>`});
- d.cities.forEach(c=>{const [x,y]=P(c.lat,c.lon);s+=`<g><title>${esc(c.city)}: ${c.short} products running short, ${c.excess} with extra stock (${c.stores} stores)</title><circle cx="${x}" cy="${y}" r="${5+Math.sqrt(c.short)*3.2}" fill="${R}1f" stroke="${R}" stroke-width="1.5"/><circle cx="${x+4}" cy="${y+4}" r="${3+Math.sqrt(c.excess)*2.6}" fill="${B}1f" stroke="${B}"/><circle cx="${x}" cy="${y}" r="3" fill="${css('--ink')}"/><text x="${x+12}" y="${y-6}" font-weight="600">${esc(c.city)}</text><text x="${x+12}" y="${y+7}" style="font-size:10px;fill:${css('--muted')}">${c.short} short · ${c.excess} extra</text></g>`});
+ d.cities.forEach(c=>{const [x,y]=P(c.lat,c.lon);s+=`<g><title>${esc(c.city)}: ${c.short} products running short, ${c.excess} with extra stock (${c.stores} stores)</title>${c.short>0&&!RM?`<circle cx="${x}" cy="${y}" r="${5+Math.sqrt(c.short)*3.2}" fill="none" stroke="${R}" stroke-width="1.5"><animate attributeName="r" from="${5+Math.sqrt(c.short)*3.2}" to="${14+Math.sqrt(c.short)*3.2}" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" from=".7" to="0" dur="2s" repeatCount="indefinite"/></circle>`:''}<circle cx="${x}" cy="${y}" r="${5+Math.sqrt(c.short)*3.2}" fill="${R}1f" stroke="${R}" stroke-width="1.5"/><circle cx="${x+4}" cy="${y+4}" r="${3+Math.sqrt(c.excess)*2.6}" fill="${B}1f" stroke="${B}"/><circle cx="${x}" cy="${y}" r="3" fill="${css('--ink')}"/><text x="${x+12}" y="${y-6}" font-weight="600">${esc(c.city)}</text><text x="${x+12}" y="${y+7}" style="font-size:10px;fill:${css('--muted')}">${c.short} short · ${c.excess} extra</text></g>`});
  $('#map').innerHTML=s;
  $('#xfer').innerHTML=d.transfers.length?d.transfers.slice(0,8).map(t=>`<div class="lrow"><span class="qty">${num(t.qty)} units</span><div class="grow"><div>${esc(t.product)}</div><div class="route">${esc(t.from)} ${icon('arrow',14)} ${esc(t.to)}</div></div></div>`).join(''):'<p class="muted small">No moves needed.</p>';
  $('#gaps').innerHTML=d.rows.filter(r=>r.status==='SHORT').sort((a,b)=>a.cover_days-b.cover_days).slice(0,6).map(r=>`<div class="lrow"><div class="grow"><div>${esc(r.product)}</div><div class="small muted">${esc(r.city_name)} · sells ${r.demand_per_day}/day · ${num(r.stock)} in stock</div></div><span class="days">${fin(r.stock)<=0?'out of stock':r.cover_days<1?'under a day':r.cover_days+' days'}</span></div>`).join('')||'<p class="muted small">Nothing is about to run out.</p>'}
@@ -526,10 +555,13 @@ async function loadBoard(){let cs;try{cs=await api('/api/campaigns')}catch(e){sh
   <div class="card"><div class="lbl">Extra units sold</div><div class="r"><span>Expected</span><div class="track"><i style="width:${o.pred_incr_units/m1*100}%;background:var(--muted)"></i></div><b>${num(o.pred_incr_units)}</b></div><div class="r"><span>Actual</span><div class="track"><i style="width:${o.actual_incr_units/m1*100}%;background:var(--accent)"></i></div><b>${num(o.actual_incr_units)}</b></div></div>
   <div class="card"><div class="lbl">Extra profit</div><div class="r"><span>Expected</span><div class="track"><i style="width:${Math.abs(o.pred_net_gp)/m2*100}%;background:var(--muted)"></i></div><b>${inr(o.pred_net_gp)}</b></div><div class="r"><span>Actual</span><div class="track"><i style="width:${Math.abs(o.actual_net_gp)/m2*100}%;background:${o.actual_net_gp<0?'var(--bad)':'var(--accent)'}"></i></div><b>${inr(o.actual_net_gp)}</b></div></div>
   <div class="card"><div class="lbl">Did we sell out?</div><div style="font-size:1.5rem;font-weight:700;color:${o.stocked_out?'var(--bad)':'var(--good)'}">${o.stocked_out?'Yes':'No'}</div><div class="small muted">Sales were ${Math.abs(o.error_pct)}% ${o.error_pct<0?'below':'above'} forecast</div></div></div>
-  <div class="learn">${icon('bulb',18)}<div><b>What we learned:</b> ${esc(o.lesson)}</div></div></div>`})():''}</div>`}).join('')}
+  <div class="learn">${icon('bulb',18)}<div><b>What we learned:</b> ${esc(o.lesson)}</div></div></div>`})():''}</div>`}).join('');$$('#board .teams').forEach(stagger)}
 let BUSY=false;$('#board').onclick=async e=>{const s=e.target.closest('[data-seal]'),w=e.target.closest('[data-warp]');if(!(s||w)||BUSY)return;BUSY=true;
  try{if(s){s.disabled=true;const [id,lens,decision]=s.dataset.seal.split('|');await api(`/api/campaigns/${id}/seal`,{lens,decision})}
-  if(w){w.disabled=true;w.textContent='Fast-forwarding…';await api(`/api/campaigns/${w.dataset.warp}/timewarp`,{})}}
+  if(w){const bar=w.closest('.sendbar'),req=api(`/api/campaigns/${w.dataset.warp}/timewarp`,{});
+  bar.outerHTML=`<div class="sim" id="simbox"><b>Fast-forwarding through the season…</b><div class="small muted" id="simday">Day 1 of 8</div><div class="days">${'<i></i>'.repeat(8)}</div><div class="small muted">Customers receive the offer, stores sell, stock moves. Then we compare with the forecast.</div></div>`;
+  if(!RM)for(let d=1;d<=8;d++){await new Promise(r=>setTimeout(r,230));const sb=$('#simbox');if(!sb)break;sb.querySelectorAll('.days i')[d-1].classList.add('on');$('#simday').textContent=`Day ${d} of 8`}
+  await req}}
  catch(err){toast(errMsg(err))}finally{BUSY=false;loadBoard()}};
 
 /* 7 past */
@@ -558,7 +590,7 @@ async function loadAud(){let d;try{d=await api('/api/audiences')}catch(e){showEr
   <div class="small">${fin(s.lift)>0?`<b style="color:var(--accent)">+${(s.lift*100).toFixed(1)}%</b> more buy with an offer`:'<b>No clear effect</b> from offers'} · <b>${(s.persuadable*100).toFixed(0)}%</b> of the group needs one</div>
   <div class="row">${(s.top_categories||[]).map(x=>`<span class="tag">Likes ${x.split(' ')[0]}</span>`).join('')}</div></div>`).join('');
  const vals=[['Customers we pick (top 30%)',mc.obs_uplift_top30_pts,'var(--accent)'],['Everyone else',mc.obs_uplift_rest_pts,'var(--neutral)'],['If we offered to everyone',mc.obs_uplift_all_pts,'var(--muted)']],vm=Math.max(...vals.map(v=>v[1]),.01);
- if(!mc.train_rows){$('#model').innerHTML='<p class="muted small">Model details unavailable.</p>';return}
+ stagger($('#segs'));if(!mc.train_rows){$('#model').innerHTML='<p class="muted small">Model details unavailable.</p>';return}
  $('#model').innerHTML=`<p class="small muted" style="margin-top:0">We learned from ${num(mc.train_rows)} past offers: ${num(mc.treated)} people got one, ${num(mc.control)} similar people didn't. Then we checked who bought extra because of the offer.</p>
  <div class="bars" style="max-width:640px">${vals.map(([l,v,c])=>barRow(l,`+${v}% more buyers`,v/vm*100,c)).join('')}</div>
  <div class="answer" style="margin:16px 0 0"><span class="ic">${icon('check',20)}</span><div><div class="lbl">Result</div><p>Offering only to the customers we pick brings ${(mc.obs_uplift_top30_pts/Math.max(mc.obs_uplift_all_pts,.01)).toFixed(1)}× more extra buyers than offering to everyone.</p></div></div>`}
