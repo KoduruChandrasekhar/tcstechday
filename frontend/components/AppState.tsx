@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { api, type Meta, type Recs, type Spec, specOf, ApiError } from "@/lib/api";
+import { api, type Campaign, type Meta, type Rec, type Recs, type Spec, specOf, ApiError } from "@/lib/api";
 
 interface State {
   meta: Meta | null; metaError: string;
@@ -8,9 +8,10 @@ interface State {
   objective: string; setObjective: (o: string) => void;
   city: string; setCity: (c: string) => void; cat: string; setCat: (c: string) => void;
   recs: Recs | null; recsError: string; reloadRecs: () => void;
+  campaigns: Campaign[] | null; campaignsError: string; reloadCampaigns: () => void;
   cur: Spec | null; setCur: (s: Spec | null) => void;
+  peek: Rec | null; setPeek: (r: Rec | null) => void;
   theme: "light" | "dark"; toggleTheme: () => void;
-  tips: boolean; toggleTips: () => void;
   toast: (m: string) => void;
 }
 const Ctx = createContext<State | null>(null);
@@ -28,25 +29,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [cat, setCat] = useState("");
   const [recs, setRecs] = useState<Recs | null>(null);
   const [recsError, setRecsError] = useState("");
+  const [campaigns, setCampaigns] = useState<Campaign[] | null>(null);
+  const [campaignsError, setCampaignsError] = useState("");
   const [cur, setCur] = useState<Spec | null>(null);
+  const [peek, setPeek] = useState<Rec | null>(null);
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [tips, setTips] = useState(true);
   const [msg, setMsg] = useState("");
   const seq = useRef(0), tt = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const toast = useCallback((m: string) => { setMsg(m); clearTimeout(tt.current); tt.current = setTimeout(() => setMsg(""), 2600); }, []);
+  const toast = useCallback((m: string) => { setMsg(m); clearTimeout(tt.current); tt.current = setTimeout(() => setMsg(""), 2800); }, []);
+
+  const reloadCampaigns = useCallback(() => {
+    api<Campaign[]>("/api/campaigns").then((c) => { setCampaigns(c); setCampaignsError(""); }).catch((e: ApiError) => setCampaignsError(e.message));
+  }, []);
 
   useEffect(() => {
     // saved preferences live outside React; read them after mount so server and client HTML match
-    Promise.resolve().then(() => {
-      setTheme((ls.get("theme2") as "light" | "dark") || "light");
-      setTips(ls.get("tips") !== "0");
-    });
+    Promise.resolve().then(() => setTheme((ls.get("theme3") as "light" | "dark") || "light"));
     api<Meta>("/api/meta").then((m) => { setMeta(m); if (!m.windows.diwali) setWinState(Object.keys(m.windows)[0]); })
       .catch((e: ApiError) => setMetaError(e.message));
-  }, []);
+    reloadCampaigns();
+  }, [reloadCampaigns]);
   useEffect(() => { document.documentElement.dataset.theme = theme; }, [theme]);
-  useEffect(() => { document.body.classList.toggle("no-tips", !tips); }, [tips]);
 
   const reloadRecs = useCallback(() => {
     if (!meta) return;
@@ -65,9 +69,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const setWin = (w: string) => { setWinState(w); setCur(null); };
   const value: State = {
-    meta, metaError, win, setWin, objective, setObjective, city, setCity, cat, setCat, recs, recsError, reloadRecs, cur, setCur,
-    theme, toggleTheme: () => setTheme((t) => { const n = t === "dark" ? "light" : "dark"; ls.set("theme2", n); return n; }),
-    tips, toggleTips: () => setTips((t) => { ls.set("tips", t ? "0" : "1"); return !t; }), toast,
+    meta, metaError, win, setWin, objective, setObjective, city, setCity, cat, setCat, recs, recsError, reloadRecs,
+    campaigns, campaignsError, reloadCampaigns, cur, setCur, peek, setPeek,
+    theme, toggleTheme: () => setTheme((t) => { const n = t === "dark" ? "light" : "dark"; ls.set("theme3", n); return n; }), toast,
   };
   return (
     <Ctx.Provider value={value}>

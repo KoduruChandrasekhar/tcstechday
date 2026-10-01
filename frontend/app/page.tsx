@@ -1,136 +1,145 @@
 "use client";
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "motion/react";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { useApp } from "@/components/AppState";
-import { Answer, BarRow, CountUp, ErrorBox, Icon, PageHead, Pager, Pill, Skeleton, TypeIn } from "@/components/ui";
-import { Funnel, Tip } from "@/components/fx";
-import { catEmoji } from "@/lib/api";
-import { api, fin, inr, num, specOf, type AiResult, type Rec, ApiError } from "@/lib/api";
+import { Tip } from "@/components/fx";
+import { NetworkMap } from "@/components/three/lazy";
+import { DataTable, Drawer, ErrorBox, Icon, Meter, PageHeader, Panel, Skeleton, Status, TypeIn, Verdict, type Col } from "@/components/ui";
+import { GOAL_LABEL, SHORT_LABEL, api, catName, cityLights, day, inr, num, seasonStatus, shortLevel, type AiResult, type MapData, type Rec, ApiError } from "@/lib/api";
 
-const GOALS = [["profit", "Most profit"], ["growth", "More sales"], ["clear", "Clear old stock"], ["retain", "Win back customers"]];
-const NOTE: Record<string, [string, string]> = { "Too much stock": ["t-info", "box"], "Running out": ["t-bad", "alert"], "Rising interest": ["t-good", "up"], Festival: ["t-warn", "cal"], "Lapsing customers": ["t-warn", "users"] };
-const SORTS: [string, string, (a: Rec, b: Rec) => number][] = [
-  ["rank", "Best match", () => 0], ["profit", "Profit", (a, b) => b.net_gp - a.net_gp],
-  ["conf", "Confidence", (a, b) => b.readiness - a.readiness], ["risk", "Lowest risk", (a, b) => a.p_stockout - b.p_stockout || b.net_gp - a.net_gp],
-];
+const SIGNAL_TONE: Record<string, string> = { "Too much stock": "violet", "Running out": "red", "Rising interest": "green", Festival: "amber", "Lapsing customers": "amber" };
+const LEVEL_TONE = ["grey", "amber", "red"];
 
-export default function TopPicks() {
-  const { meta, metaError, recs, recsError, reloadRecs, objective, setObjective, city, setCity, cat, setCat, win, setCur } = useApp();
-  const router = useRouter();
-  const [q, setQ] = useState(""), [sort, setSort] = useState("rank"), [all, setAll] = useState(false);
-  const [ai, setAi] = useState<AiResult | null>(null), [aiBusy, setAiBusy] = useState(false), [aiErr, setAiErr] = useState("");
+export default function Overview() {
+  const { meta, metaError, recs, recsError, reloadRecs, win, city: cityFilter, cat, objective, campaigns, setPeek } = useApp();
+  const [map, setMap] = useState<MapData | null>(null), [mapErr, setMapErr] = useState("");
+  const [city, setCity] = useState(""), [reset, setReset] = useState(0);
+  const [brief, setBrief] = useState<AiResult | null>(null), [briefOpen, setBriefOpen] = useState(false), [busy, setBusy] = useState(false), [briefErr, setBriefErr] = useState("");
 
-  const picks = useMemo(() => {
-    if (!recs) return [];
-    const qq = q.trim().toLowerCase();
-    const list = recs.top.map((r, i) => ({ ...r, _rank: i + 1 }))
-      .filter((r) => !qq || [r.product, r.city_name, r.segment, r.offer, r.category].join(" ").toLowerCase().includes(qq));
-    return list.sort(SORTS.find((s) => s[0] === sort)![2]);
-  }, [recs, q, sort]);
-  const shown = all || q ? picks : picks.slice(0, 6);
-  const notes = useMemo(() => {
-    if (!recs) return [];
-    const byType = [...new Map(recs.opportunities.map((o) => [o.type, o])).values()];
-    recs.opportunities.forEach((o) => byType.length < 6 && !byType.includes(o) && byType.push(o));
-    return byType.slice(0, 6);
-  }, [recs]);
+  const loadMap = () => { api<MapData>("/api/mismatch?window=" + win).then((m) => { setMap(m); setMapErr(""); }).catch((e: ApiError) => setMapErr(e.message)); };
+  useEffect(loadMap, [win]);
 
-  const open = (r: Rec) => { setCur(specOf(r, win)); router.push("/build"); };
-  const briefing = async () => {
-    setAiBusy(true); setAiErr("");
-    const p = new URLSearchParams({ objective, window: win }); if (city) p.set("city", city); if (cat) p.set("category", cat);
-    try { setAi(await api<AiResult>("/api/ai/overview?" + p)); } catch (e) { setAiErr((e as ApiError).message); }
-    setAiBusy(false);
+  const lights = useMemo(() => (map ? cityLights(map) : []), [map]);
+  const maxShort = Math.max(0, ...lights.map((l) => l.short));
+  const cities = useMemo(() => [...lights].sort((a, b) => b.short - a.short || b.demand - a.demand), [lights]);
+
+  const writeBrief = async () => {
+    setBriefOpen(true); setBusy(true); setBriefErr("");
+    const p = new URLSearchParams({ objective, window: win }); if (cityFilter) p.set("city", cityFilter); if (cat) p.set("category", cat);
+    try { setBrief(await api<AiResult>("/api/ai/overview?" + p)); } catch (e) { setBriefErr((e as ApiError).message); }
+    setBusy(false);
   };
 
-  if (metaError) return <main><ErrorBox msg={metaError} retry={() => location.reload()} /></main>;
-  const k = recs?.kpis, safe = k ? fin(k.counts.GO) + fin(k.counts["CONDITIONAL GO"]) : 0;
-  const cats = meta ? [...new Set(meta.products.map((p) => p.cat))].sort() : [];
+  const w = meta?.windows[win], k = recs?.kpis, counts = k?.counts;
+  const passed = counts ? (counts.GO || 0) + (counts["CONDITIONAL GO"] || 0) + (counts.HOLD || 0) : 0;
+  const waiting = (campaigns || []).filter((c) => c.status === "Pending sign-off" || c.status === "Approved");
+
+  const cols: Col<Rec & { rank: number }>[] = [
+    { key: "rank", label: "#", render: (r) => <span className={`rank ${r.rank === 1 ? "top" : ""}`}>{r.rank}</span>, w: 44 },
+    { key: "promo", label: "Promotion", render: (r) => <><b>{r.offer} on {r.product}</b><span className="sub">{catName(r.category)}</span></> },
+    { key: "who", label: "Customers", hide: "md", render: (r) => <><span className="nw">{r.segment}</span><span className="sub">{r.city_name}</span></> },
+    { key: "v", label: "Decision", hide: "sm", render: (r) => <Verdict v={r.verdict} /> },
+    { key: "gp", label: "Extra profit", num: true, render: (r) => <b style={{ color: r.net_gp < 0 ? "var(--sindoor)" : undefined }}>{r.fmt?.net_gp ?? inr(r.net_gp)}</b> },
+    { key: "conf", label: "Confidence", num: true, hide: "sm", render: (r) => <span className="conf">{Math.round(r.readiness)}<Meter v={r.readiness} /></span> },
+  ];
 
   return (
-    <main>
-      <PageHead step={1} title="The best promotions to run" lead="We tried every combination of product, city, customer group and discount, and kept only the promotions that make money without running out of stock."
-        tips={[["Pick a goal", "profit, sales, clearing stock or winning customers back."], ["Browse the picks", "best first."], ["Open one", "to see why, and change it."]]} />
+    <>
+      <PageHeader
+        title={w?.name || "Overview"}
+        sub={meta && w ? `${day(w.start, false)} to ${day(w.end)}, ${seasonStatus(meta.today, w)}. Figures use sales, stock and customer data up to ${day(meta.today)}.` : "Loading the season"}
+        actions={<>
+          <button className="btn" onClick={writeBrief} disabled={!recs}><Icon n="doc" s={15} />Season briefing</button>
+          <Link className="btn primary" href="/promotions">Review promotions</Link>
+        </>} />
 
-      <div className="filters">
-        <span className="small muted">Goal</span>
-        <div className="chips">{GOALS.map(([v, l]) => <button key={v} className={`chip ${objective === v ? "on" : ""}`} onClick={() => setObjective(v)}>{l}</button>)}</div>
-        <select className="pick" value={city} onChange={(e) => setCity(e.target.value)} aria-label="City"><option value="">All cities</option>{meta?.cities.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}</select>
-        <select className="pick" value={cat} onChange={(e) => setCat(e.target.value)} aria-label="Category"><option value="">All categories</option>{cats.map((c) => <option key={c}>{c}</option>)}</select>
+      {(metaError || recsError) && <ErrorBox msg={metaError || recsError} retry={metaError ? () => location.reload() : reloadRecs} />}
+
+      <div className="ledger" aria-label="This season's promotion funnel">
+        <div><span>Ideas tested</span><b>{k ? num(k.candidates) : "–"}</b><small>Every product, city, customer group and discount</small></div>
+        <div><span>Pass the policy rules</span><b>{counts ? num(passed) : "–"}</b><small>{counts ? <Link className="link" href="/promotions/blocked">{num(counts.BLOCK || 0)} blocked</Link> : "Checking"}</small></div>
+        <div><span>Recommended</span><b>{recs ? recs.top.length : "–"}</b><small>Ranked for {GOAL_LABEL[objective]}</small></div>
+        <div className="hl"><span>Extra profit<Tip k="profit" /></span><b>{k?.net_gp_top ?? "–"}</b><small>If every recommended promotion runs</small></div>
       </div>
 
-      {recsError && <ErrorBox msg={recsError} retry={reloadRecs} />}
-      <Answer icon="bulb">{recs ? recs.insight || "No results for this filter." : <span className="skel" style={{ display: "block", width: "70%" }} />}</Answer>
+      <div className="grid eq">
+        <Panel className="model s-8" title="Store network" sub="Tower height is festival demand, width is the number of stores. Click a city for details."
+          actions={<button className="icon-btn" onClick={() => setReset((r) => r + 1)} aria-label="Reset the 3D view" title="Reset view"><Icon n="rotate" s={15} /></button>} flush>
+          <div className="stage" style={{ ["--h" as string]: "470px" }}>
+            {mapErr ? <div className="stage-fallback">{mapErr}</div> : lights.length ? <NetworkMap lights={lights} selected={city} onSelect={(n) => setCity((s) => (s === n ? "" : n))} reset={reset} /> : <div className="stage-fallback">Loading the network</div>}
+            <div className="stage-legend"><span><i style={{ background: "var(--accent)" }} />{SHORT_LABEL[0]}</span><span><i style={{ background: "var(--marigold)" }} />{SHORT_LABEL[1]}</span><span><i style={{ background: "var(--sindoor)" }} />{SHORT_LABEL[2]}</span></div>
+          </div>
+        </Panel>
 
-      {k && <Funnel stages={[
-        { v: k.candidates, label: "Promotion ideas checked", tip: "checked", tone: "linear-gradient(90deg,#a1a1aa,#71717a)" },
-        { v: safe, label: "Safe to run", tip: "safe" },
-        { v: recs!.top.length, label: "Picked for you", tip: "picked", tone: "linear-gradient(90deg,var(--good),#16a34a)" },
-      ]} />}
+        <Panel className="s-4 fill" title="Cities" sub="Most products running short first" flush>
+          {!map && !mapErr ? <div className="panel-b"><Skeleton lines={6} /></div> : (
+            <ul className="list">
+              {cities.map((c) => {
+                const lvl = shortLevel(c.short, maxShort);
+                return (
+                  <li key={c.name} className={`click ${city === c.name ? "on" : ""}`} onClick={() => setCity((s) => (s === c.name ? "" : c.name))}
+                    tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter") setCity((s) => (s === c.name ? "" : c.name)); }} aria-pressed={city === c.name} role="button">
+                    <span className="grow"><b>{c.name}</b><span>{c.stores} stores, {num(c.demand)} units a day</span></span>
+                    <span className={`badge ${LEVEL_TONE[lvl]}`}><i />{c.short ? `${c.short} short` : "Stock holds"}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          <div className="panel-foot"><span className="muted">{city ? `${city} selected` : `${lights.length} cities`}</span><Link className="link" href="/inventory">Open inventory</Link></div>
+        </Panel>
+      </div>
 
-      <div className="card ai">
-        <div className="row between"><div><h2>Morning briefing</h2><p className="sub" style={{ margin: 0 }}>A plain-English summary of these results, written by AI from the engine&apos;s numbers.</p></div>
-          <button className="btn sm" onClick={briefing} disabled={aiBusy || !recs}><Icon n="edit" s={16} />{aiBusy ? "Writing…" : ai ? "Rewrite" : "Write my briefing"}</button></div>
-        {aiErr && <p className="ai-note">{aiErr}</p>}
-        {ai && (
-          <div className="ai-out">
-            <p style={{ fontSize: "1.1rem", fontWeight: 600 }}><TypeIn text={String(ai.headline || "")} /></p>
-            <p><TypeIn text={String(ai.briefing || "")} /></p>
-            <div><div className="lbl">Do next</div><ul>{((ai.actions as string[]) || []).map((a, i) => <li key={i}>{a}</li>)}</ul></div>
-            <div className={`ai-note ${ai.source === "ai" ? "ok" : ""}`}>{ai.source === "ai" ? "✓ " : ""}{ai.note}</div>
+      <div className="grid">
+        <Panel className="s-8" title="Recommended promotions" sub={recs ? `Top ${Math.min(8, recs.top.length)} of ${recs.top.length}, ranked for ${GOAL_LABEL[objective]}` : undefined}
+          actions={<Link className="btn sm" href="/promotions">View all</Link>} flush>
+          {!recs && !recsError ? <div className="panel-b"><Skeleton lines={6} /></div> : (
+            <DataTable label="Recommended promotions" rows={(recs?.top || []).slice(0, 8).map((r, i) => ({ ...r, rank: i + 1 }))} cols={cols} rowKey={(r) => r.id} onRow={setPeek}
+              empty={<>No promotions pass the rules for this filter. <Link className="link" href="/promotions/blocked">See what was blocked</Link></>} />
+          )}
+        </Panel>
+
+        <div className="stack s-4">
+          <Panel title="Needs action" actions={<Link className="link" href="/approvals">Approvals</Link>} flush>
+            {!campaigns ? <div className="panel-b"><Skeleton lines={2} /></div> : waiting.length ? (
+              <ul className="list">
+                {waiting.slice(0, 4).map((c) => (
+                  <li key={c.id}><Link href={`/approvals?c=${c.id}`} className="row" style={{ display: "flex", gap: 12, alignItems: "center", width: "100%" }}>
+                    <span className="grow"><b>{c.id}: {c.rec.offer} on {c.rec.product}</b><span>{c.rec.segment} in {c.rec.city_name}</span></span><Status s={c.status} />
+                  </Link></li>
+                ))}
+              </ul>
+            ) : <p className="panel-b muted">Nothing is waiting. Promotions sent for approval appear here.</p>}
+          </Panel>
+          <Panel title="Signals" sub="From recent sales, stock and online searches" flush>
+            {!recs ? <div className="panel-b"><Skeleton lines={4} /></div> : (
+              <ul className="list">
+                {recs.opportunities.slice(0, 5).map((o, i) => (
+                  <li key={i} style={{ alignItems: "flex-start" }}><span className="grow"><span className={`badge ${SIGNAL_TONE[o.type] || "grey"}`} style={{ marginBottom: 4 }}><i />{o.type}</span><span style={{ color: "var(--ink-2)" }}>{o.text}</span></span></li>
+                ))}
+                {!recs.opportunities.length && <li className="muted">No new signals this week.</li>}
+              </ul>
+            )}
+          </Panel>
+        </div>
+      </div>
+
+      <Drawer open={briefOpen} onClose={() => setBriefOpen(false)} title="Season briefing" sub={`${w?.name || ""}, ranked for ${GOAL_LABEL[objective]}. Written from the planning engine's own figures.`}
+        footer={<>
+          {brief && <button className="btn" onClick={() => navigator.clipboard?.writeText([brief.headline, brief.briefing, ...((brief.actions as string[]) || [])].join("\n\n"))}><Icon n="copy" s={15} />Copy</button>}
+          <button className="btn primary" onClick={writeBrief} disabled={busy}>{busy ? "Writing" : "Write again"}</button>
+        </>}>
+        {briefErr && <ErrorBox msg={briefErr} retry={writeBrief} />}
+        {busy && !brief && <Skeleton lines={6} />}
+        {brief && (
+          <div style={{ display: "grid", gap: 14, opacity: busy ? 0.5 : 1 }}>
+            <p style={{ font: "650 1.15rem/1.4 var(--font-head)" }}><TypeIn text={String(brief.headline || "")} /></p>
+            <p><TypeIn text={String(brief.briefing || "")} /></p>
+            <div><h3>Next actions</h3><ul className="bul">{((brief.actions as string[]) || []).map((a, i) => <li key={i}>{a}</li>)}</ul></div>
+            <p className={`note ${brief.source === "ai" ? "ok" : ""}`}>{brief.note}</p>
           </div>
         )}
-      </div>
-
-      <div className="section">
-        <div className="row between" style={{ alignItems: "flex-end" }}>
-          <div><h2>Our top picks</h2><p className="sub">Click a card to see why it was picked</p></div>
-          <button className="link" onClick={() => setAll((a) => !a)}>{q ? `${picks.length} match${picks.length === 1 ? "" : "es"}` : picks.length > 6 ? (all ? "Show fewer" : `Show all ${picks.length}`) : ""}</button>
-        </div>
-        <div className="tools">
-          <input className="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search product, city or customer group…" aria-label="Search promotions" />
-          <span className="small muted">Sort by</span>
-          <div className="seg2">{SORTS.map(([v, l]) => <button key={v} className={sort === v ? "on" : ""} onClick={() => setSort(v)}>{l}</button>)}</div>
-        </div>
-        <div className="pcards">
-          {!recs && !recsError && <Skeleton />}
-          <AnimatePresence mode="popLayout">
-          {recs && shown.map((r, i) => (
-            <motion.button key={r.id} layout className="pcard" onClick={() => open(r)}
-              initial={{ opacity: 0, y: 12, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }}
-              transition={{ layout: { type: "spring", stiffness: 380, damping: 32 }, delay: Math.min(i, 8) * 0.04, duration: 0.3 }}>
-              <div className="row between"><span className="rank">#{r._rank}</span><Pill v={r.verdict} /></div>
-              <div className="prod-row"><span className="prod-tile" aria-hidden>{catEmoji(r.category)}</span><div><div className="prod">{r.product}</div><span className="offer">{r.offer}</span></div></div>
-              <div className="meta"><span><Icon n="users" s={15} />{r.segment}</span><span><Icon n="pin" s={15} />{r.city_name}</span></div>
-              <div className="foot">
-                <div><div className="money-l">Extra profit <Tip k="profit" /></div><div className="money" style={{ color: r.net_gp < 0 ? "var(--bad)" : undefined }}><CountUp to={r.net_gp} fmt="inr" /></div></div>
-                <div className="conf"><div className="money-l">Confidence {Math.round(r.readiness)} <Tip k="confidence" /></div><div className="track"><i style={{ width: `${r.readiness}%` }} /></div></div>
-              </div>
-            </motion.button>
-          ))}
-          </AnimatePresence>
-          {recs && !shown.length && <div className="card empty" style={{ gridColumn: "1/-1" }}><b>{q ? `No picks match “${q}”` : "No safe promotions for this filter"}</b>{q ? "Try a product, city or group name." : "Try another goal or city, or see what was blocked."}</div>}
-        </div>
-      </div>
-
-      <div className="section"><h2>Things we noticed</h2><p className="sub">Signals from sales, stock and online searches</p>
-        <div className="notes">{notes.length ? notes.map((o, i) => { const [t, ic] = NOTE[o.type] || ["t-info", "bulb"]; return <div key={i} className={`note ${t}`}><span className="ic"><Icon n={ic} s={16} /></span><div><b>{o.type}</b>{o.text}</div></div>; }) : <p className="muted small">Nothing unusual right now.</p>}</div>
-      </div>
-
-      {recs && (
-        <details className="more"><summary><div>More detail<small>Why promotions were blocked · extra profit by category</small></div></summary>
-          <div className="inner grid g2">
-            <div className="card"><h2>Why ideas were blocked</h2><p className="sub">{recs.insights?.block}</p><div className="bars">
-              {Object.entries(recs.block_reasons || {}).sort((a, b) => b[1] - a[1]).map(([l, v], _, arr) => <BarRow key={l} label={l} right={`${num(v)} ideas`} pct={(v / Math.max(1, arr[0][1])) * 100} color="var(--bad)" />)}
-            </div></div>
-            <div className="card"><h2>Extra profit by category</h2><p className="sub">{recs.insights?.cat}</p><div className="bars">
-              {Object.entries(recs.gp_by_cat || {}).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([l, v], _, arr) => <BarRow key={l} label={l} right={inr(v)} pct={(v / Math.max(1, arr[0][1])) * 100} />)}
-            </div></div>
-          </div>
-        </details>
-      )}
-      <Pager step={1} />
-    </main>
+      </Drawer>
+    </>
   );
 }

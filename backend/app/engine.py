@@ -423,7 +423,8 @@ def evaluate(w: World, seg: str, sku: str, city: str, offer_idx: int, channel: s
     change = []
     if p_stockout > 0.15:
         safe_cap = max(0, int(avail - organic - 1.2 * math.sqrt(max(total_need, 0.1))))
-        change.append(f"Limit the offer to {safe_cap} units, or move stock in from a city that has extra")
+        change.append(f"Limit the offer to {safe_cap} units, or move stock in from a city that has extra" if safe_cap >= 1
+                      else "Move stock in from a city that has extra before promoting; there's no spare stock here")
     if leak_share > 0.45:
         change.append("Leave out customers who'd buy anyway, or drop to 5% off")
     if gp_margin < 0.06:

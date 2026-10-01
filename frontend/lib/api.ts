@@ -79,18 +79,70 @@ export function inr(v: unknown): string {
 export const num = (v: unknown) => Math.round(fin(v)).toLocaleString("en-IN");
 export const pct = (v: unknown, d = 0) => `${(fin(v) * 100).toFixed(d)}%`;
 
-export const VERDICT: Record<string, { label: string; text: string; color: string }> = {
-  GO: { label: "Go", text: "Run it. It makes money and stock will last.", color: "var(--good)" },
-  CONDITIONAL: { label: "Go, with a change", text: "Run it with the change suggested below.", color: "var(--warn)" },
-  HOLD: { label: "Wait", text: "The numbers are borderline. Try a different offer or city.", color: "var(--muted)" },
-  BLOCK: { label: "Don't run", text: "It breaks a safety rule. See the fix below.", color: "var(--bad)" },
+export const VERDICT: Record<string, { label: string; text: string; color: string; tone: string }> = {
+  GO: { label: "Go", text: "Makes money, and stock will last the season.", color: "var(--leaf)", tone: "green" },
+  CONDITIONAL: { label: "Go with changes", text: "Worth running once the suggested change is made.", color: "var(--amber)", tone: "amber" },
+  HOLD: { label: "Hold", text: "Borderline. Try a different discount or city.", color: "var(--muted)", tone: "grey" },
+  BLOCK: { label: "Blocked", text: "Breaks a policy rule. The fix is listed below.", color: "var(--sindoor)", tone: "red" },
 };
 export const vk = (v?: string) => {
   const k = String(v || "HOLD").split(" ")[0];
   return VERDICT[k] ? k : "HOLD";
 };
 
-const CAT_EMOJI: Record<string, string> = { TV: "📺", AC: "❄️", REF: "🧊", WM: "🧺", AUD: "🎧", LAP: "💻", KIT: "🍳", TAB: "📱", PHN: "📱", ACC: "🎒", GAM: "🎮", WEA: "⌚" };
-export const catEmoji = (cat?: string) => CAT_EMOJI[String(cat || "").toUpperCase()] || "🛍️";
-const WIN_EMOJI: Record<string, string> = { navratri: "🪔", diwali: "🪔", xmas: "🎄", rds: "🇮🇳" };
-export const winEmoji = (k: string) => WIN_EMOJI[k] || "🎉";
+const CAT_NAME: Record<string, string> = {
+  TV: "Television", AC: "Air conditioner", REF: "Refrigerator", WM: "Washing machine", AUD: "Audio", LAP: "Laptop",
+  KIT: "Kitchen appliance", TAB: "Tablet", PHN: "Phone", ACC: "Accessory", GAM: "Gaming & camera", WEA: "Wearable",
+};
+export const catName = (cat?: string) => CAT_NAME[String(cat || "").toUpperCase()] || String(cat || "Product");
+
+
+export interface MapData {
+  insight: string;
+  rows: { city: string; city_name: string; product: string; status: string; cover_days: number; demand_per_day: number; stock: number }[];
+  transfers: { product: string; from: string; to: string; qty: number; from_ll: [number, number]; to_ll: [number, number] }[];
+  cities: { city: string; lat: number; lon: number; stores: number; short: number; excess: number }[];
+}
+export interface CityLight { name: string; lat: number; lon: number; stores: number; short: number; excess: number; demand: number; stock: number; cover: number }
+
+/** Roll SKU rows up to one lamp per city: demand per day, stock, days of cover, and how many products run short. */
+export function cityLights(d: MapData): CityLight[] {
+  return d.cities.map((c) => {
+    const rows = d.rows.filter((r) => r.city_name === c.city);
+    const demand = rows.reduce((a, r) => a + fin(r.demand_per_day), 0), stock = rows.reduce((a, r) => a + fin(r.stock), 0);
+    return { name: c.city, lat: c.lat, lon: c.lon, stores: c.stores, short: c.short, excess: c.excess, demand, stock, cover: demand ? stock / demand : 0 };
+  });
+}
+
+export interface Outcome { pred_incr_units: number; actual_incr_units: number; pred_net_gp: number; actual_net_gp: number; stocked_out: boolean; error_pct: number; lesson: string }
+export interface Campaign { id: string; rec: Rec; status: string; seals: Record<string, string | null>; log?: string[]; outcome?: Outcome }
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+/** "2026-11-01" -> "1 Nov 2026". Parsed by hand so the server and browser agree whatever the time zone. */
+export function day(iso?: string, year = true): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || "");
+  if (!m) return iso || "";
+  return `${+m[3]} ${MONTHS[+m[2] - 1]}${year ? " " + m[1] : ""}`;
+}
+export const daysBetween = (a: string, b: string) => Math.round((Date.parse(b.slice(0, 10)) - Date.parse(a.slice(0, 10))) / 864e5);
+
+/** Status wording for a season relative to the data date. */
+export function seasonStatus(today: string, w: { start: string; end: string }): string {
+  const d = daysBetween(today, w.start), e = daysBetween(today, w.end);
+  return d > 1 ? `starts in ${d} days` : d === 1 ? "starts tomorrow" : e >= 0 ? "running now" : "ended";
+}
+
+/** Download rows as a CSV file. */
+export function downloadCSV(name: string, head: string[], rows: (string | number | null | undefined)[][]) {
+  const q = (v: unknown) => { const t = String(v ?? ""); return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
+  const blob = new Blob(["\ufeff" + [head, ...rows].map((r) => r.map(q).join(",")).join("\n")], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+/** Shortage level for a city, in three plain steps: 0 stock holds, 1 some products short, 2 many short. */
+export const shortLevel = (short: number, maxShort: number) => (short <= 0 ? 0 : short < Math.max(2, maxShort * 0.5) ? 1 : 2);
+export const SHORT_LABEL = ["Stock holds", "Some products short", "Many products short"];
+
+export const GOALS: [string, string][] = [["profit", "Most profit"], ["growth", "More sales"], ["clear", "Clear old stock"], ["retain", "Win back customers"]];
+export const GOAL_LABEL: Record<string, string> = { profit: "most profit", growth: "more sales", clear: "clearing old stock", retain: "winning back customers" };

@@ -11,11 +11,12 @@ export const cssVar = (v: string) => (typeof window === "undefined" ? "#888" : g
 export default function Charts() {
   const { theme } = useApp();
   useEffect(() => {
-    Chart.defaults.font.family = "Inter, system-ui, sans-serif";
+    Chart.defaults.font.family = getComputedStyle(document.body).fontFamily; // next/font hashes the family name
+    Chart.defaults.font.size = 12.5;
     Chart.defaults.color = cssVar("--muted");
-    Chart.defaults.borderColor = cssVar("--grid");
+    Chart.defaults.borderColor = cssVar("--line");
     Chart.defaults.maintainAspectRatio = false;
-    Object.assign(Chart.defaults.plugins.tooltip, { backgroundColor: cssVar("--ink"), titleColor: cssVar("--surface"), bodyColor: cssVar("--surface"), padding: 10, cornerRadius: 8, displayColors: false });
+    Object.assign(Chart.defaults.plugins.tooltip, { backgroundColor: cssVar("--ink"), titleColor: cssVar("--canvas"), bodyColor: cssVar("--canvas"), padding: 10, cornerRadius: 8, displayColors: false });
   }, [theme]);
   return null;
 }

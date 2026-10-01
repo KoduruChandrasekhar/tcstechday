@@ -7,6 +7,13 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [{ source: "/api/:path*", destination: `${API_URL}/api/:path*` }];
   },
+  // Older links from the walkthrough version of the app keep working.
+  async redirects() {
+    return [
+      ["/stock", "/inventory"], ["/build", "/planner"], ["/blocked", "/promotions/blocked"],
+      ["/signoff", "/approvals"], ["/results", "/performance"],
+    ].map(([source, destination]) => ({ source, destination, permanent: false }));
+  },
 };
 
 export default nextConfig;
