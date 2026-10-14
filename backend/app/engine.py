@@ -149,26 +149,20 @@ class World:
         self.attach_gp = att
 
         # ---------- uplift: T-learner on campaign exposures (treated vs holdout control) ----------
-        from sklearn.linear_model import LogisticRegression
+        from . import uplift as UP
         ex = _r("exposures")
         hist = _r("campaigns_hist")
         ex = ex.merge(hist[["campaign_id", "discount_pct"]], on="campaign_id", how="left")
-        feats = ["orders_24m", "log_spend", "recency", "web_active_days_90d", "promo_order_share", "exposures_60d",
-                 "tier", "app_user"]
-        cu["log_spend"] = np.log1p(cu["spend_24m"].fillna(0))
-        cu["recency"] = np.minimum(cu["days_since_last_order"], 730) / 365
-        cu["tier"] = cu["loyalty_tier"].map({"none": 0, "silver": 1, "gold": 2, "elite": 3}).fillna(0)
-        cu["app_user"] = cu["app_user"].astype(float)
-        X = ex.merge(cu[["customer_id", "segment"] + feats], on="customer_id").dropna(subset=["converted_30d"])
-        X["converted_30d"] = X.converted_30d.astype(int)
+        feats = UP.FEATURES
+        X = UP.training_frame(UP.add_features(cu), ex)
         T, Cn = X[X.group == "T"], X[X.group == "C"]
-        mt = LogisticRegression(max_iter=500, C=0.5).fit(T[feats], T.converted_30d)
-        mc = LogisticRegression(max_iter=500, C=0.5).fit(Cn[feats], Cn.converted_30d)
-        cu["p_treat"], cu["p_ctrl"] = mt.predict_proba(cu[feats])[:, 1], mc.predict_proba(cu[feats])[:, 1]
+        model = UP.TLearner(UP._lr).fit(X)
+        cu["p_treat"], cu["p_ctrl"] = model.predict(cu)
         cu["uplift"] = cu.p_treat - cu.p_ctrl
         mean_disc = float(T.discount_pct.clip(lower=0.03).mean())
         # Qini-style validation: observed (T - C) conversion in top-30% predicted uplift vs the rest
-        X["pred_uplift"] = mt.predict_proba(X[feats])[:, 1] - mc.predict_proba(X[feats])[:, 1]
+        pt, pc = model.predict(X)
+        X["pred_uplift"] = pt - pc
         top = X.pred_uplift >= X.pred_uplift.quantile(0.7)
         obs = lambda d: d[d.group == "T"].converted_30d.mean() - d[d.group == "C"].converted_30d.mean()
         self.model_card = {"model": "T-learner uplift (2 × logistic regression)", "features": feats,
@@ -379,7 +373,9 @@ def evaluate(w: World, seg: str, sku: str, city: str, offer_idx: int, channel: s
     if gp_margin < g["min_gp_margin"]:
         blocks.append(f"Too little profit: margin after discount is {gp_margin:.1%}, below our {g['min_gp_margin']:.0%} minimum")
     if p_stockout > g["max_stockout_prob"] and not cap:
-        blocks.append(f"{p_stockout:.0%} chance of a stock-out in {C['city']}: only {avail:.0f} units available vs ~{total_need:.0f} needed")
+        tight = " (demand varies, so stock this close to it runs out about half the time)" if avail >= total_need else ""
+        blocks.append(f"{p_stockout:.0%} chance of a stock-out in {C['city']}: {avail:.0f} units for ~{total_need:.0f} expected "
+                      f"demand ({organic:.0f} normal sales + {promo_units:.0f} from the offer){tight}")
     elif p_stockout > 0.15:
         risks.append(f"{p_stockout:.0%} chance of a stock-out" + (f", runs out on day {stockout_day}" if stockout_day else ""))
     if audience < g["min_segment_size"]:
@@ -424,7 +420,8 @@ def evaluate(w: World, seg: str, sku: str, city: str, offer_idx: int, channel: s
     if p_stockout > 0.15:
         safe_cap = max(0, int(avail - organic - 1.2 * math.sqrt(max(total_need, 0.1))))
         change.append(f"Limit the offer to {safe_cap} units, or move stock in from a city that has extra" if safe_cap >= 1
-                      else "Move stock in from a city that has extra before promoting; there's no spare stock here")
+                      else f"No spare stock to promote: normal sales alone need ~{organic:.0f} of the {avail:.0f} units. "
+                           "Move stock in from a city that has extra first")
     if leak_share > 0.45:
         change.append("Leave out customers who'd buy anyway, or drop to 5% off")
     if gp_margin < 0.06:

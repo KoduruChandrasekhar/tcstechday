@@ -4,6 +4,14 @@ Problem Statement 3 (Retail / E-commerce). Decision support that recommends pers
 
 ## Run
 
+One-time setup (Python 3.11+; a clean venv avoids NumPy 1.x/2.x clashes with conda installs):
+
+```bash
+python3.11 -m venv .venv
+.venv/bin/pip install -r backend/requirements-dev.txt
+source .venv/bin/activate
+```
+
 ```bash
 cd backend
 python -m data_gen.generate --seed 42 --customers 8000   # only if data/synthetic is empty

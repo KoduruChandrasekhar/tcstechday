@@ -1,0 +1,8 @@
+# Runtime: engine + API (what the deployed server installs). Pinned to the versions tested locally.
+numpy==2.4.6
+pandas==2.3.3
+pyarrow==26.0.0
+scikit-learn==1.9.1
+fastapi==0.143.0
+uvicorn==0.54.0
+pydantic==2.14.1

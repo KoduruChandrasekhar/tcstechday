@@ -1,0 +1,7 @@
+# Local work: runtime + data generator (backend/data_gen) + uplift benchmark (python -m app.uplift)
+-r requirements.txt
+xgboost==3.2.0
+scipy==1.17.1
+polars==2.0.0
+python-calamine==0.8.3
+matplotlib==3.11.2

@@ -51,10 +51,13 @@ export async function api<T>(url: string, body?: unknown): Promise<T> {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
     });
   } catch {
-    throw new ApiError("Cannot reach the server. Is the backend running on port 8765?");
+    throw new ApiError("Cannot reach the server. Check your connection, or that the backend is running (port 8765 locally).");
   }
   let j: unknown;
-  try { j = await r.json(); } catch { throw new ApiError(`Server error (${r.status})`); }
+  try { j = await r.json(); } catch {
+    // a non-JSON reply means the /api proxy could not reach the engine: down, or a free-tier host still waking up
+    throw new ApiError(`The engine isn't responding yet (${r.status}). Free hosting sleeps when idle; try again in a minute.`);
+  }
   if (!r.ok) {
     const d = (j as { detail?: unknown })?.detail;
     throw new ApiError(typeof d === "string" ? d : (d as { msg?: string })?.msg || `Request failed (${r.status})`);
