@@ -1,4 +1,5 @@
 "use client";
+import { MotionConfig } from "motion/react";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { api, type Campaign, type Meta, type Rec, type Recs, type Spec, specOf, ApiError } from "@/lib/api";
 
@@ -75,7 +76,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
   return (
     <Ctx.Provider value={value}>
-      {children}
+      <MotionConfig reducedMotion="user">{children}</MotionConfig>
       <div className={`toast ${msg ? "on" : ""}`} role="status">{msg}</div>
     </Ctx.Provider>
   );

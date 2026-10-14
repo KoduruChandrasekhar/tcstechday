@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useApp } from "@/components/AppState";
 import { Tip } from "@/components/fx";
 import Filters from "@/components/Filters";
+import { ProfitSkyline } from "@/components/three/lazy";
 import { DataTable, ErrorBox, HBar, Icon, Meter, PageHeader, Panel, Skeleton, Verdict, type Col } from "@/components/ui";
 import { GOAL_LABEL, VERDICT, catName, downloadCSV, fin, inr, num, vk, type Rec } from "@/lib/api";
 
@@ -11,7 +12,7 @@ type Row = Rec & { rank: number };
 
 export default function Promotions() {
   const { recs, recsError, reloadRecs, objective, setPeek, peek, meta, win } = useApp();
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(""), [hot, setHot] = useState(""), [reset, setReset] = useState(0);
 
   const rows = useMemo<Row[]>(() => {
     const t = q.trim().toLowerCase();
@@ -55,9 +56,18 @@ export default function Promotions() {
       </div>
 
       {recsError && <ErrorBox msg={recsError} retry={reloadRecs} />}
+      {rows.length > 1 && (
+        <Panel className="model" title="Profit skyline" sub="One block per promotion, in rank order. Height is extra profit. Hover a block or a row to match them; click to open."
+          actions={<button className="icon-btn" onClick={() => setReset((x) => x + 1)} aria-label="Reset the 3D view" title="Reset view"><Icon n="rotate" s={15} /></button>} flush>
+          <div className="stage" style={{ ["--h" as string]: "300px" }}>
+            <ProfitSkyline rows={rows} active={hot || peek?.id || ""} onHover={setHot} reset={reset}
+              onSelect={(id) => { const r = rows.find((x) => x.id === id); if (r) setPeek(r); }} />
+          </div>
+        </Panel>
+      )}
       <Panel flush>
         {!recs && !recsError ? <div className="panel-b"><Skeleton lines={8} /></div> : (
-          <DataTable label="Recommended promotions" rows={rows} cols={cols} rowKey={(r) => r.id} onRow={setPeek} isOn={(r) => peek?.id === r.id}
+          <DataTable label="Recommended promotions" rows={rows} cols={cols} rowKey={(r) => r.id} onRow={setPeek} onHover={(r) => setHot(r?.id || "")} isOn={(r) => peek?.id === r.id || hot === r.id}
             empty={q ? `Nothing matches “${q}”.` : <>No promotions pass the policy rules for this filter. <Link className="link" href="/promotions/blocked">See what was blocked</Link></>} />
         )}
         {rows.length > 0 && <div className="panel-foot"><span className="muted">{rows.length} promotion{rows.length > 1 ? "s" : ""}</span><span>Combined extra profit <b className="num">{inr(total)}</b></span></div>}

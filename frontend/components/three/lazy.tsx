@@ -6,3 +6,4 @@ const wait = () => <div className="stage-fallback">Loading 3D view</div>;
 export const NetworkMap = dynamic(() => import("./NetworkMap"), { ssr: false, loading: wait });
 export const StockRunway = dynamic(() => import("./StockRunway"), { ssr: false, loading: wait });
 export const SegmentBlocks = dynamic(() => import("./SegmentBlocks"), { ssr: false, loading: wait });
+export const ProfitSkyline = dynamic(() => import("./ProfitSkyline"), { ssr: false, loading: wait });

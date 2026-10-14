@@ -65,7 +65,7 @@ export default function Inventory() {
       {d?.insight && <p className="answer">{d.insight}</p>}
 
       <div className="grid eq">
-        <Panel className="model s-8" title="Store network" sub="Dashed lines are suggested stock moves; they drift toward the city that needs the stock."
+        <Panel className="model s-8" title="Store network" sub="Cartons travel along each suggested stock move, toward the city that needs the stock."
           actions={<>
             <label className="small" style={{ display: "inline-flex", gap: 7, alignItems: "center" }}><input type="checkbox" checked={arcs} onChange={(e) => setArcs(e.target.checked)} />Stock moves</label>
             <button className="icon-btn" onClick={() => setReset((r) => r + 1)} aria-label="Reset the 3D view" title="Reset view"><Icon n="rotate" s={15} /></button>

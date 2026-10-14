@@ -1,10 +1,11 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bar } from "react-chartjs-2";
 import { useApp } from "@/components/AppState";
 import { cssVar } from "@/components/charts-setup";
 import { Tip, Tween } from "@/components/fx";
+import { gsap, markSeen, openingFor, skippable, type Opening } from "@/components/motion/gsap";
 import { CHECKS } from "@/components/PromoDrawer";
 import { StockRunway } from "@/components/three/lazy";
 import { ErrorBox, HBar, Icon, Meter, PageHeader, Panel, Skeleton, TypeIn, Verdict } from "@/components/ui";
@@ -38,6 +39,41 @@ export default function Planner() {
     if (n === seq.current) setBusy(false);
   }, [toast]);
   useEffect(() => { if (cur) { const t = setTimeout(() => run(cur), 120); return () => clearTimeout(t); } }, [cur, run]);
+
+  // Motion: the workspace arrives in order on the first visit of a session; after that it only
+  // moves when the decision changes, so the change itself is what catches the eye.
+  const [opening] = useState<Opening>(() => openingFor("planner"));
+  const shell = !!(meta && cur), ready = !!r;
+  const played = useRef({ shell: false, inner: false, flash: 0 });
+  const ctx = useRef<gsap.Context | null>(null);
+  useLayoutEffect(() => {
+    ctx.current = gsap.context(() => {});
+    return () => { ctx.current?.revert(); ctx.current = null; played.current = { shell: false, inner: false, flash: 0 }; };
+  }, []);
+  useLayoutEffect(() => {
+    const c = ctx.current;
+    if (!c || opening === "none") return;
+    c.add(() => {
+      const seen = played.current;
+      if (shell && !seen.shell) {
+        seen.shell = true; markSeen("planner");
+        if (opening === "full") skippable(gsap.from(".planner > *", { y: 28, opacity: 0, stagger: 0.12, duration: 0.7 }));
+      }
+      if (ready && !seen.inner) {
+        seen.inner = true;
+        if (opening === "full") skippable(gsap.timeline({ delay: 0.3 })
+          .from(".decision .decision-word", { yPercent: 80, opacity: 0, duration: 0.5 })
+          .from(".decision .kv", { x: 10, opacity: 0, stagger: 0.05, duration: 0.4 }, "<0.1")
+          .fromTo(".decision .check .meter i", { scaleX: 0 }, { scaleX: 1, stagger: 0.06, duration: 0.55 }, "<0.15"));
+      }
+      if (flash !== seen.flash) {
+        seen.flash = flash;
+        gsap.timeline()
+          .fromTo(".decision .decision-word", { yPercent: 80, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.45 })
+          .fromTo(".decision .check .meter i", { scaleX: 0 }, { scaleX: 1, stagger: 0.06, duration: 0.5 }, "<0.1");
+      }
+    });
+  }, [opening, shell, ready, flash]);
 
   if (!meta || !cur) return <><PageHeader title="Planner" sub="Loading products, cities and customer groups" /><Skeleton lines={8} /></>;
 
@@ -185,11 +221,11 @@ export default function Planner() {
         </div>
 
         <div className="decision-col">
-          <aside key={flash} className={`panel decision sticky ${flash ? "flash" : ""}`} style={{ ["--c" as string]: V.color, opacity: busy ? 0.65 : 1 }} aria-live="polite">
+          <aside className="panel decision sticky" style={{ ["--c" as string]: V.color, opacity: busy ? 0.65 : 1 }} aria-live="polite">
             {err ? <div className="panel-b"><ErrorBox msg={err} retry={() => run(cur)} /></div> : !r ? <div className="panel-b"><Skeleton lines={7} /></div> : <>
               <div className="decision-sec">
                 <h3>Decision</h3>
-                <div className="decision-word">{V.label}</div>
+                <div className="decision-clip"><div className="decision-word">{V.label}</div></div>
                 <p className="small" style={{ color: "var(--ink-2)" }}>{blocked && r.blocks[0] ? r.blocks[0] + "." : V.text}</p>
                 <div className="kv" style={{ marginTop: 10 }}><span>Confidence<Tip k="confidence" /></span><b>{rd}<span className="muted small">/100</span><Meter v={rd} /></b></div>
               </div>

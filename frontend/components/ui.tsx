@@ -73,9 +73,28 @@ export function PageHeader({ title, sub, actions, tabs }: { title: React.ReactNo
   );
 }
 
+/** Panels that start below the fold rise in the first time they scroll into view. Panels already on screen stay still. */
+function useReveal<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined" || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (el.getBoundingClientRect().top < window.innerHeight * 0.92) return;
+    el.classList.add("rv");
+    const show = () => { el.classList.add("rv-in"); io.disconnect(); clearTimeout(t); };
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) show(); }, { rootMargin: "0px 0px -8% 0px" });
+    // never leave figures hidden: if the browser doesn't report the scroll, show the panel anyway
+    const t = setTimeout(show, 4000);
+    io.observe(el);
+    return () => { io.disconnect(); clearTimeout(t); el.classList.remove("rv", "rv-in"); };
+  }, []);
+  return ref;
+}
+
 export function Panel({ title, sub, actions, children, className = "", flush, id }: { title?: React.ReactNode; sub?: React.ReactNode; actions?: React.ReactNode; children: React.ReactNode; className?: string; flush?: boolean; id?: string }) {
+  const ref = useReveal<HTMLElement>();
   return (
-    <section className={`panel ${className}`} id={id}>
+    <section ref={ref} className={`panel ${className}`} id={id}>
       {(title || actions) && (
         <div className="panel-h">
           <div>{title && <h2>{title}</h2>}{sub && <p>{sub}</p>}</div>
@@ -98,8 +117,8 @@ export function Seg<T extends string>({ value, set, opts, label }: { value: T; s
 export interface Col<T> { key: string; label: React.ReactNode; render: (r: T, i: number) => React.ReactNode; sort?: (r: T) => number | string; num?: boolean; hide?: "md" | "sm"; w?: number | string }
 
 /** Sortable, paged table. Rows open with click or Enter. */
-export function DataTable<T>({ rows, cols, rowKey, onRow, initial, pageSize = 0, empty = "Nothing to show.", isOn, label }: {
-  rows: T[]; cols: Col<T>[]; rowKey: (r: T) => string; onRow?: (r: T) => void; initial?: [string, "asc" | "desc"];
+export function DataTable<T>({ rows, cols, rowKey, onRow, onHover, initial, pageSize = 0, empty = "Nothing to show.", isOn, label }: {
+  rows: T[]; cols: Col<T>[]; rowKey: (r: T) => string; onRow?: (r: T) => void; onHover?: (r: T | null) => void; initial?: [string, "asc" | "desc"];
   pageSize?: number; empty?: React.ReactNode; isOn?: (r: T) => boolean; label: string;
 }) {
   const [sort, setSort] = useState<[string, "asc" | "desc"] | null>(initial || null);
@@ -124,10 +143,13 @@ export function DataTable<T>({ rows, cols, rowKey, onRow, initial, pageSize = 0,
             </th>))}</tr></thead>
           <tbody>
             {shown.map((r, i) => (
-              <tr key={rowKey(r)} className={`${onRow ? "click" : ""} ${isOn?.(r) ? "on" : ""}`} tabIndex={onRow ? 0 : undefined}
-                onClick={onRow ? () => onRow(r) : undefined} onKeyDown={onRow ? (e) => { if (e.key === "Enter") onRow(r); } : undefined}>
+              <motion.tr layout="position" transition={{ type: "spring", stiffness: 520, damping: 44 }}
+                key={rowKey(r)} className={`${onRow ? "click" : ""} ${isOn?.(r) ? "on" : ""}`} tabIndex={onRow ? 0 : undefined}
+                onClick={onRow ? () => onRow(r) : undefined} onKeyDown={onRow ? (e) => { if (e.key === "Enter") onRow(r); } : undefined}
+                onMouseEnter={onHover ? () => onHover(r) : undefined} onMouseLeave={onHover ? () => onHover(null) : undefined}
+                onFocus={onHover ? () => onHover(r) : undefined} onBlur={onHover ? () => onHover(null) : undefined}>
                 {cols.map((c) => <td key={c.key} className={`${c.num ? "r num" : ""} ${c.hide ? "hide-" + c.hide : ""}`}>{c.render(r, p * pageSize + i)}</td>)}
-              </tr>
+              </motion.tr>
             ))}
           </tbody>
         </table>

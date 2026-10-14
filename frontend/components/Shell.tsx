@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { useApp } from "./AppState";
 import CommandPalette from "./CommandPalette";
@@ -94,7 +95,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <div id="main" className="app">{children}</div>
+      {/* keyed on the path, so each page change gives one short arrival; query-string changes don't */}
+      <motion.div key={path} id="main" className="app" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.22, ease: [0.2, 0.7, 0.2, 1] }} style={{ transform: "none" }}>{children}</motion.div>
 
       <footer className="foot">
         <div className="foot-in">

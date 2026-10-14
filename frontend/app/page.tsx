@@ -1,12 +1,15 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useApp } from "@/components/AppState";
 import { Tip } from "@/components/fx";
+import CountText from "@/components/motion/CountText";
+import { gsap, markSeen, openingFor, skippable, type Opening } from "@/components/motion/gsap";
 import { NetworkMap } from "@/components/three/lazy";
-import { DataTable, Drawer, ErrorBox, Icon, Meter, PageHeader, Panel, Skeleton, Status, TypeIn, Verdict, type Col } from "@/components/ui";
+import { DataTable, Drawer, ErrorBox, Icon, Meter, Panel, Skeleton, Status, TypeIn, Verdict, type Col } from "@/components/ui";
 import { GOAL_LABEL, SHORT_LABEL, api, catName, cityLights, day, inr, num, seasonStatus, shortLevel, type AiResult, type MapData, type Rec, ApiError } from "@/lib/api";
 
+const STEP = 0.16; // seconds between funnel cells in the opening
 const SIGNAL_TONE: Record<string, string> = { "Too much stock": "violet", "Running out": "red", "Rising interest": "green", Festival: "amber", "Lapsing customers": "amber" };
 const LEVEL_TONE = ["grey", "amber", "red"];
 
@@ -15,9 +18,38 @@ export default function Overview() {
   const [map, setMap] = useState<MapData | null>(null), [mapErr, setMapErr] = useState("");
   const [city, setCity] = useState(""), [reset, setReset] = useState(0);
   const [brief, setBrief] = useState<AiResult | null>(null), [briefOpen, setBriefOpen] = useState(false), [busy, setBusy] = useState(false), [briefErr, setBriefErr] = useState("");
+  const [opening] = useState<Opening>(() => openingFor("overview"));
+  const mountedAt = useRef(0), [riseDelay, setRiseDelay] = useState<number | null>(null);
 
-  const loadMap = () => { api<MapData>("/api/mismatch?window=" + win).then((m) => { setMap(m); setMapErr(""); }).catch((e: ApiError) => setMapErr(e.message)); };
-  useEffect(loadMap, [win]);
+  // The one choreographed moment in the app: the season, then its funnel in order, then the network rising.
+  useLayoutEffect(() => {
+    mountedAt.current = performance.now();
+    if (opening === "none") return;
+    markSeen("overview");
+    if (opening !== "full") return;
+    const ctx = gsap.context(() => {
+      skippable(gsap.timeline()
+        .from(".hero h1", { y: 26, opacity: 0, duration: 0.7 }, 0)
+        .from(".hero-head p", { y: 12, opacity: 0, duration: 0.55 }, 0.15)
+        .from(".hero .ph-actions .btn", { y: 10, opacity: 0, stagger: 0.07, duration: 0.45 }, 0.25)
+        .from(".hero .ledger", { y: 30, opacity: 0, duration: 0.65 }, 0.35)
+        .from(".hero .ledger > div", { x: -12, opacity: 0, stagger: STEP, duration: 0.45 }, 0.55)
+        .fromTo(".hero .ledger > div + div", { "--draw": 0 }, { "--draw": 1, stagger: STEP, duration: 0.3 }, 0.55 + STEP)
+        .from(".lifted > *", { y: 44, opacity: 0, stagger: 0.12, duration: 0.75 }, 1.05));
+    });
+    return () => ctx.revert();
+  }, [opening]);
+  // funnel figures count up as their cell arrives; later visits get a quick count, reduced motion none
+  const count = (i: number) => (opening === "full" ? { delay: 0.62 + i * STEP, duration: 0.9 } : opening === "short" ? { delay: 0, duration: 0.5 } : { delay: 0, duration: 0 });
+
+  const loadMap = () => {
+    api<MapData>("/api/mismatch?window=" + win).then((m) => {
+      setMap(m); setMapErr("");
+      // in the opening, towers start rising once their panel has arrived, however long the data took
+      setRiseDelay((d) => d ?? (opening === "full" ? Math.max(0, 1.35 - (performance.now() - mountedAt.current) / 1000) : 0));
+    }).catch((e: ApiError) => setMapErr(e.message));
+  };
+  useEffect(loadMap, [win, opening]);
 
   const lights = useMemo(() => (map ? cityLights(map) : []), [map]);
   const maxShort = Math.max(0, ...lights.map((l) => l.short));
@@ -45,28 +77,32 @@ export default function Overview() {
 
   return (
     <>
-      <PageHeader
-        title={w?.name || "Overview"}
-        sub={meta && w ? `${day(w.start, false)} to ${day(w.end)}, ${seasonStatus(meta.today, w)}. Figures use sales, stock and customer data up to ${day(meta.today)}.` : "Loading the season"}
-        actions={<>
-          <button className="btn" onClick={writeBrief} disabled={!recs}><Icon n="doc" s={15} />Season briefing</button>
-          <Link className="btn primary" href="/promotions">Review promotions</Link>
-        </>} />
+      <section className="hero" aria-labelledby="season-title">
+        <div className="hero-head">
+          <div>
+            <h1 id="season-title">{w?.name || "Overview"}</h1>
+            <p>{meta && w ? `${day(w.start, false)} to ${day(w.end)}, ${seasonStatus(meta.today, w)}. Figures use sales, stock and customer data up to ${day(meta.today)}.` : "Loading the season"}</p>
+          </div>
+          <div className="ph-actions">
+            <button className="btn" onClick={writeBrief} disabled={!recs}><Icon n="doc" s={15} />Season briefing</button>
+            <Link className="btn primary" href="/promotions">Review promotions</Link>
+          </div>
+        </div>
+        <div className="ledger" aria-label="This season's promotion funnel">
+          <div><span>Ideas tested</span><b><CountText text={k ? num(k.candidates) : "–"} {...count(0)} /></b><small>Every product, city, customer group and discount</small></div>
+          <div><span>Pass the policy rules</span><b><CountText text={counts ? num(passed) : "–"} {...count(1)} /></b><small>{counts ? <Link className="link" href="/promotions/blocked">{num(counts.BLOCK || 0)} blocked</Link> : "Checking"}</small></div>
+          <div><span>Recommended</span><b><CountText text={recs ? String(recs.top.length) : "–"} {...count(2)} /></b><small>Ranked for {GOAL_LABEL[objective]}</small></div>
+          <div className="hl"><span>Extra profit<Tip k="profit" /></span><b><CountText text={k?.net_gp_top ?? "–"} {...count(3)} /></b><small>If every recommended promotion runs</small></div>
+        </div>
+      </section>
 
       {(metaError || recsError) && <ErrorBox msg={metaError || recsError} retry={metaError ? () => location.reload() : reloadRecs} />}
 
-      <div className="ledger" aria-label="This season's promotion funnel">
-        <div><span>Ideas tested</span><b>{k ? num(k.candidates) : "–"}</b><small>Every product, city, customer group and discount</small></div>
-        <div><span>Pass the policy rules</span><b>{counts ? num(passed) : "–"}</b><small>{counts ? <Link className="link" href="/promotions/blocked">{num(counts.BLOCK || 0)} blocked</Link> : "Checking"}</small></div>
-        <div><span>Recommended</span><b>{recs ? recs.top.length : "–"}</b><small>Ranked for {GOAL_LABEL[objective]}</small></div>
-        <div className="hl"><span>Extra profit<Tip k="profit" /></span><b>{k?.net_gp_top ?? "–"}</b><small>If every recommended promotion runs</small></div>
-      </div>
-
-      <div className="grid eq">
+      <div className="grid eq lifted">
         <Panel className="model s-8" title="Store network" sub="Tower height is festival demand, width is the number of stores. Click a city for details."
           actions={<button className="icon-btn" onClick={() => setReset((r) => r + 1)} aria-label="Reset the 3D view" title="Reset view"><Icon n="rotate" s={15} /></button>} flush>
           <div className="stage" style={{ ["--h" as string]: "470px" }}>
-            {mapErr ? <div className="stage-fallback">{mapErr}</div> : lights.length ? <NetworkMap lights={lights} selected={city} onSelect={(n) => setCity((s) => (s === n ? "" : n))} reset={reset} /> : <div className="stage-fallback">Loading the network</div>}
+            {mapErr ? <div className="stage-fallback">{mapErr}</div> : lights.length ? <NetworkMap lights={lights} selected={city} onSelect={(n) => setCity((s) => (s === n ? "" : n))} reset={reset} delay={riseDelay ?? 0} /> : <div className="stage-fallback">Loading the network</div>}
             <div className="stage-legend"><span><i style={{ background: "var(--accent)" }} />{SHORT_LABEL[0]}</span><span><i style={{ background: "var(--marigold)" }} />{SHORT_LABEL[1]}</span><span><i style={{ background: "var(--sindoor)" }} />{SHORT_LABEL[2]}</span></div>
           </div>
         </Panel>

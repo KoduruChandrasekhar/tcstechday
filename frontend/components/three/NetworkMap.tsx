@@ -5,7 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { QuadraticBezierLine, RoundedBox } from "@react-three/drei";
 import { useMemo, useRef, useState } from "react";
 import * as THREE from "three";
-import { shortLevel, type CityLight } from "@/lib/api";
+import { num, shortLevel, type CityLight } from "@/lib/api";
 import Stage, { stillMotion, useModel, type Label } from "./Stage";
 
 const K = 0.36, LON0 = 81.8, LAT0 = 22.4, PLATE = 0.2;
@@ -44,33 +44,52 @@ function Plate() {
   );
 }
 
-function Arc({ from, to, still }: { from: [number, number]; to: [number, number]; still: boolean }) {
+function Arc({ from, to, still, seed }: { from: [number, number]; to: [number, number]; still: boolean; seed: number }) {
   const m = useModel();
-  const ref = useRef<{ material: { dashOffset: number } } | null>(null);
   const [ax, az] = toXZ(from[0], from[1]), [bx, bz] = toXZ(to[0], to[1]);
   const top = PLATE + 0.04, len = Math.hypot(bx - ax, bz - az);
-  // dashes drift from source to destination, so the direction of the move reads without arrowheads
-  useFrame((_, dt) => { if (!still && ref.current) ref.current.material.dashOffset -= dt * 0.5; });
-  return <QuadraticBezierLine ref={ref as never} start={[ax, top, az]} end={[bx, top, bz]} mid={[(ax + bx) / 2, top + 0.4 + len * 0.3, (az + bz) / 2]}
-    color={m.arc} lineWidth={2} dashed dashSize={0.14} gapSize={0.09} />;
+  const mid: [number, number, number] = [(ax + bx) / 2, top + 0.4 + len * 0.3, (az + bz) / 2];
+  const curve = useMemo(() => new THREE.QuadraticBezierCurve3(new THREE.Vector3(ax, top, az), new THREE.Vector3(...mid), new THREE.Vector3(bx, top, bz)), [ax, az, bx, bz, top, mid[1]]); // eslint-disable-line react-hooks/exhaustive-deps
+  const parcels = useRef<(THREE.Mesh | null)[]>([]);
+  // two cartons ride each arc from the city with spare stock to the one that needs it, so the direction reads at a glance
+  useFrame(({ clock }) => {
+    parcels.current.forEach((p, i) => {
+      if (!p) return;
+      const t = still ? 0.5 : (clock.elapsedTime * 0.16 + seed * 0.37 + i * 0.5) % 1;
+      p.position.copy(curve.getPoint(t));
+      p.rotation.y = t * Math.PI;
+      p.scale.setScalar(still ? 1 : Math.min(1, Math.sin(t * Math.PI) * 3));
+    });
+  });
+  return (
+    <group>
+      <QuadraticBezierLine start={[ax, top, az]} end={[bx, top, bz]} mid={mid} color={m.arc} lineWidth={1.5} dashed dashSize={0.1} gapSize={0.08} transparent opacity={0.7} />
+      {(still ? [0] : [0, 1]).map((i) => (
+        <mesh key={i} ref={(el) => { parcels.current[i] = el; }} castShadow>
+          <boxGeometry args={[0.13, 0.09, 0.11]} />
+          <meshStandardMaterial color={m.kraft} roughness={0.85} />
+        </mesh>
+      ))}
+    </group>
+  );
 }
 
 interface Max { demand: number; short: number; stores: number }
 const dims = (c: CityLight, mx: Max) => ({ h: 0.25 + 2.3 * Math.sqrt(c.demand / Math.max(mx.demand, 1e-6)), w: 0.2 + 0.16 * Math.sqrt(c.stores / Math.max(mx.stores, 1)) });
 
-interface TowerProps { c: CityLight; i: number; mx: Max; selected: boolean; still: boolean; onSelect?: (n: string) => void }
-function Tower({ c, i, mx, selected, still, onSelect }: TowerProps) {
+interface TowerProps { c: CityLight; i: number; mx: Max; selected: boolean; hovered: boolean; still: boolean; delay: number; onSelect?: (n: string) => void; onHover: (n: string) => void }
+function Tower({ c, i, mx, selected, hovered, still, delay, onSelect, onHover }: TowerProps) {
   const m = useModel();
   const [x, z] = toXZ(c.lat, c.lon);
   const { h, w } = dims(c, mx), maxShort = mx.short;
   const lvl = shortLevel(c.short, maxShort), color = [m.clay, m.warm, m.hot][lvl];
   const g = useRef<THREE.Group>(null), t0 = useRef<number | null>(null);
-  const [hover, setHover] = useState(false);
+  const hover = hovered;
 
   useFrame(({ clock }) => {
     if (!g.current) return;
     if (t0.current === null) t0.current = clock.elapsedTime;
-    const p = still ? 1 : Math.min(1, Math.max(0, (clock.elapsedTime - t0.current - 0.15 - i * 0.06) / 0.9));
+    const p = still ? 1 : Math.min(1, Math.max(0, (clock.elapsedTime - t0.current - 0.15 - delay - i * 0.06) / 0.9));
     const e = 1 - Math.pow(1 - p, 3);
     g.current.scale.y = Math.max(0.001, e);
   });
@@ -86,8 +105,8 @@ function Tower({ c, i, mx, selected, still, onSelect }: TowerProps) {
       <group ref={g}>
         <RoundedBox args={[w, h, w]} radius={0.03} smoothness={3} position-y={h / 2} castShadow receiveShadow
           onClick={onSelect ? (e) => { e.stopPropagation(); onSelect(c.name); } : undefined}
-          onPointerOver={onSelect ? (e) => { e.stopPropagation(); setHover(true); document.body.style.cursor = "pointer"; } : undefined}
-          onPointerOut={onSelect ? () => { setHover(false); document.body.style.cursor = ""; } : undefined}>
+          onPointerOver={(e) => { e.stopPropagation(); onHover(c.name); if (onSelect) document.body.style.cursor = "pointer"; }}
+          onPointerOut={() => { onHover(""); document.body.style.cursor = ""; }}>
           <meshStandardMaterial color={color} roughness={0.7} emissive={color} emissiveIntensity={hover || selected ? 0.22 : 0} />
         </RoundedBox>
       </group>
@@ -95,27 +114,30 @@ function Tower({ c, i, mx, selected, still, onSelect }: TowerProps) {
   );
 }
 
-export interface NetworkMapProps { lights: CityLight[]; selected?: string; onSelect?: (name: string) => void; arcs?: { from: [number, number]; to: [number, number] }[]; reset?: number }
+export interface NetworkMapProps { lights: CityLight[]; selected?: string; onSelect?: (name: string) => void; arcs?: { from: [number, number]; to: [number, number] }[]; reset?: number; delay?: number }
 
-export default function NetworkMap({ lights, selected, onSelect, arcs = [], reset = 0 }: NetworkMapProps) {
+export default function NetworkMap({ lights, selected, onSelect, arcs = [], reset = 0, delay = 0 }: NetworkMapProps) {
   const [still] = useState(stillMotion);
+  const [hover, setHover] = useState("");
   const mx: Max = { demand: Math.max(...lights.map((l) => l.demand), 1), short: Math.max(...lights.map((l) => l.short), 0), stores: Math.max(...lights.map((l) => l.stores), 1) };
   const labels: Label[] = lights.map((c) => {
-    const [x, z] = toXZ(c.lat, c.lon), { h } = dims(c, mx), on = selected === c.name;
+    const [x, z] = toXZ(c.lat, c.lon), { h } = dims(c, mx), on = selected === c.name, hl = hover === c.name;
     return { key: c.name, pos: [x, PLATE + h + 0.2, z], node: (
-      <button type="button" className={`map-label ${on ? "on" : ""} ${onSelect ? "" : "static"}`} tabIndex={onSelect ? 0 : -1} onClick={() => onSelect?.(c.name)}
+      <button type="button" className={`map-label ${on ? "on" : ""} ${hl ? "hl" : ""} ${onSelect ? "" : "static"}`} tabIndex={onSelect ? 0 : -1} onClick={() => onSelect?.(c.name)}
+        onMouseEnter={() => setHover(c.name)} onMouseLeave={() => setHover("")} onFocus={() => setHover(c.name)} onBlur={() => setHover("")}
         aria-pressed={onSelect ? on : undefined} aria-label={`${c.name}: ${c.short} products running short, ${c.stores} stores`}>
-        {c.name}{on && <small>{c.short} short</small>}
+        {c.name}
+        {(on || hl) && <small>{c.short} short, {num(c.demand)} a day, {c.stores} stores</small>}
       </button>
     ) };
   });
   return (
     <Stage label="3D model of the store network: one tower per city, taller for more festival demand, amber or red where products are running short"
-      fit={{ w: 5.35, d: 4.85, el: 42, az: 0, target: [0.35, 0.55, 0.7] }} reset={reset} labels={labels}>
+      fit={{ w: 5.35, d: 4.85, el: 42, az: 0, target: [0.35, 0.55, 0.7] }} reset={reset} labels={labels} labelDelay={1 + delay}>
       <Plate />
-      {arcs.map((a, i) => <Arc key={i} from={a.from} to={a.to} still={still} />)}
+      {arcs.map((a, i) => <Arc key={i} from={a.from} to={a.to} still={still} seed={i} />)}
       {lights.map((c, i) => (
-        <Tower key={c.name} c={c} i={i} mx={mx} selected={selected === c.name} still={still} onSelect={onSelect} />
+        <Tower key={c.name} c={c} i={i} mx={mx} selected={selected === c.name} hovered={hover === c.name} still={still} delay={delay} onSelect={onSelect} onHover={setHover} />
       ))}
     </Stage>
   );

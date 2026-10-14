@@ -1,7 +1,7 @@
 "use client";
 // Shared set-up for every 3D view: the business shown as a matte scale model on a table, lit from the top left.
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { Grid, OrbitControls } from "@react-three/drei";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import type { OrbitControls as OC } from "three-stdlib";
@@ -9,9 +9,9 @@ import { useApp } from "../AppState";
 
 export const MODEL = {
   light: { plate: "#e6e1ee", side: "#cbc2d9", outline: "#9d8fb5", clay: "#6d4ea8", clayLo: "#b7aecb", warm: "#e09a2b", hot: "#c4412f",
-    kraft: "#d4b48a", tape: "#b8925f", leaf: "#2f7d5b", arc: "#5b2f91", shadow: 0.16 },
+    kraft: "#d4b48a", tape: "#b8925f", leaf: "#2f7d5b", arc: "#5b2f91", shadow: 0.16, cell: "#dcd6e6", section: "#c9c0d8" },
   dark: { plate: "#3e3556", side: "#272036", outline: "#7d6fa0", clay: "#9c80da", clayLo: "#4d4563", warm: "#f0b04a", hot: "#ef7a6c",
-    kraft: "#b3946b", tape: "#8c6f4b", leaf: "#5fbf8c", arc: "#c9b3e6", shadow: 0.4 },
+    kraft: "#b3946b", tape: "#8c6f4b", leaf: "#5fbf8c", arc: "#c9b3e6", shadow: 0.4, cell: "#251f31", section: "#322a42" },
 };
 export const useModel = () => MODEL[useApp().theme === "dark" ? "dark" : "light"];
 
@@ -58,10 +58,10 @@ function Projector({ labels, nodes }: { labels: Label[]; nodes: React.RefObject<
 
 export interface StageProps {
   children: React.ReactNode; label: string; fit: { w: number; d: number; el: number; az?: number; target: [number, number, number] };
-  reset?: number; turn?: number; shadowBox?: number; labels?: Label[];
+  reset?: number; turn?: number; shadowBox?: number; labels?: Label[]; labelDelay?: number;
 }
 
-export default function Stage({ children, label, fit, reset = 0, turn = 0.8, shadowBox = 8, labels = [] }: StageProps) {
+export default function Stage({ children, label, fit, reset = 0, turn = 0.8, shadowBox = 8, labels = [], labelDelay = 1 }: StageProps) {
   const [ok] = useState(() => { try { const c = document.createElement("canvas"); return !!(c.getContext("webgl2") || c.getContext("webgl")); } catch { return false; } });
   const [still] = useState(stillMotion);
   const [fine] = useState(() => matchMedia("(pointer: fine)").matches);
@@ -69,7 +69,7 @@ export default function Stage({ children, label, fit, reset = 0, turn = 0.8, sha
   const dark = useApp().theme === "dark";
   if (!ok) return <div className="stage-fallback">This browser can&apos;t draw 3D views. The table alongside has the same figures.</div>;
   return (
-    <div className="stage-3d">
+    <div className="stage-3d" style={{ ["--lbl-delay" as string]: `${labelDelay}s` }}>
       <Canvas shadows="percentage" flat dpr={[1, 2]} frameloop={still ? "demand" : "always"} camera={{ fov: 32, near: 0.1, far: 120 }} gl={{ antialias: true, alpha: true }} aria-label={label} role="img">
         <hemisphereLight args={[dark ? "#b9a8d9" : "#ffffff", dark ? "#140f1d" : "#d9d2e4", dark ? 1.1 : 1.35]} />
         <directionalLight position={[-5, 9, 6]} intensity={dark ? 1.5 : 1.9} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004}
@@ -78,6 +78,9 @@ export default function Stage({ children, label, fit, reset = 0, turn = 0.8, sha
           <planeGeometry args={[80, 80]} />
           <shadowMaterial transparent opacity={dark ? MODEL.dark.shadow : MODEL.light.shadow} />
         </mesh>
+        {/* the cutting-mat grid of a model maker's table: gives the eye a floor to judge height and depth against */}
+        <Grid position-y={0.0005} infiniteGrid cellSize={0.5} cellThickness={0.6} cellColor={dark ? MODEL.dark.cell : MODEL.light.cell}
+          sectionSize={2.5} sectionThickness={1} sectionColor={dark ? MODEL.dark.section : MODEL.light.section} fadeDistance={26} fadeStrength={2.2} />
         {children}
         <OrbitControls makeDefault enabled={fine} enableZoom={false} enablePan={false} enableDamping={!still} dampingFactor={0.08} rotateSpeed={0.5}
           minAzimuthAngle={THREE.MathUtils.degToRad(fit.az || 0) - turn} maxAzimuthAngle={THREE.MathUtils.degToRad(fit.az || 0) + turn}
